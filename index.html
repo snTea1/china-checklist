@@ -24,12 +24,12 @@
 <canvas id="canvas" width="800" height="1200"></canvas>
 
 <script>
-// 作品リスト
+// 作品リスト（author, title, items）
 const works = [
-  { title: "魔道祖師", items: ["ドラマ（陳情令）", "アニメ", "小説"] },
-  { title: "天官賜福", items: ["アニメ", "小説"] },
-  { title: "山河令", items: ["ドラマ", "小説"] },
-  { title: "陳情令外伝", items: ["小説"] }
+  { title: "魔道祖師", author: "墨香銅臭", items: ["ドラマ（陳情令）", "アニメ", "小説"] },
+  { title: "天官賜福", author: "墨香銅臭", items: ["アニメ", "小説"] },
+  { title: "山河令", author: "作者B", items: ["ドラマ", "小説"] },
+  { title: "陳情令外伝", author: "作者C", items: ["小説"] }
 ];
 
 // チェックボックス生成
@@ -38,7 +38,7 @@ works.forEach((work, i) => {
   const div = document.createElement("div");
   div.className = "work";
 
-  let html = `<strong>${work.title}</strong><br>`;
+  let html = `<strong>${work.title}</strong>（${work.author}）<br>`;
   work.items.forEach((item, j) => {
     html += `
       <label>
@@ -52,37 +52,41 @@ works.forEach((work, i) => {
   app.appendChild(div);
 });
 
-// 画像生成
+// 画像生成（選択済みのみ描画）
 function generate() {
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  // 背景
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   let y = 60;
 
-  // タイトル
-  ctx.fillStyle = "#000";
-  ctx.font = "bold 30px sans-serif";
-  ctx.fillText("私の中華作品履修チェック", 50, y);
-
-  y += 50;
-
   works.forEach((work, i) => {
-    ctx.font = "bold 24px sans-serif";
-    ctx.fillText(work.title, 50, y);
-    y += 40;
+    const selectedItems = work.items.filter((_, j) => document.getElementById(`w${i}-${j}`).checked);
 
-    work.items.forEach((item, j) => {
-      const checked = document.getElementById(`w${i}-${j}`).checked;
-      ctx.font = "20px sans-serif";
-      ctx.fillText((checked ? "☑ " : "⬜ ") + item, 70, y);
+    if (selectedItems.length > 0) {
+      // 作者
+      ctx.font = "italic 20px sans-serif";
+      ctx.fillStyle = "#555";
+      ctx.fillText("作者：" + work.author, 50, y);
       y += 30;
-    });
 
-    y += 20;
+      // 作品タイトル
+      ctx.font = "bold 24px sans-serif";
+      ctx.fillStyle = "#000";
+      ctx.fillText(work.title, 50, y);
+      y += 40;
+
+      // 選択済み項目
+      selectedItems.forEach(item => {
+        ctx.font = "20px sans-serif";
+        ctx.fillText("☑ " + item, 70, y);
+        y += 30;
+      });
+
+      y += 20; // 作品間余白
+    }
   });
 }
 
