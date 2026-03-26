@@ -18,8 +18,8 @@
 <div id="app"></div>
 
 <button onclick="generate()">画像を作る</button>
-<button onclick="saveImage()">画像を保存</button>
-<button onclick="shareTwitter()">Twitterでシェア</button>
+<button onclick="saveImage()">JPEGで保存</button>
+<button onclick="shareImage()">共有する（iPhone向け）</button>
 
 <canvas id="canvas" width="800" height="1200"></canvas>
 
@@ -86,23 +86,34 @@ function generate() {
   });
 }
 
-// 画像保存
+// JPEG保存
 function saveImage() {
   const canvas = document.getElementById("canvas");
   const link = document.createElement('a');
-  link.download = 'my_chinese_checklist.png';
-  link.href = canvas.toDataURL();
+  link.download = 'my_chinese_checklist.jpg';
+  link.href = canvas.toDataURL("image/jpeg", 0.92);
   link.click();
 }
 
-// Twitterでシェア
-function shareTwitter() {
-  const text = encodeURIComponent(
-    "私の中華作品履修チェックを作ってみた📚🔥\n" +
-    "みんなも作れる👉 https://china-checklist.vercel.app\n" +
-    "#中華ドラマ #チェックリスト"
-  );
-  window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
+// iPhone向け共有
+async function shareImage() {
+  const canvas = document.getElementById("canvas");
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], "my_checklist.jpg", { type: "image/jpeg" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "中華作品履修チェック",
+          text: "私のチェックリストを作ってみた📚🔥"
+        });
+      } catch (err) {
+        alert("共有できませんでした: " + err);
+      }
+    } else {
+      alert("このブラウザでは共有できません。長押しで保存してください。");
+    }
+  }, "image/jpeg", 0.92);
 }
 </script>
 
