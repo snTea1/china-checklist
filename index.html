@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>中華作品履修チェック</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+  h1 { text-align: center; margin-bottom: 20px; }
+  .work { margin-bottom: 15px; padding: 10px; background: white; border-radius: 10px; }
+  button { display: block; margin: 20px auto; padding: 10px 20px; font-size: 16px; }
+  canvas { display: block; margin: 20px auto; border: 1px solid #ccc; }
+</style>
+</head>
+<body>
+
+<h1>私の中華作品履修チェック</h1>
+
+<div id="app"></div>
+
+<button onclick="generate()">画像を作る</button>
+
+<canvas id="canvas" width="800" height="1200"></canvas>
+
+<script>
+// 作品リスト
+const works = [
+  { title: "魔道祖師", items: ["ドラマ（陳情令）", "アニメ", "小説"] },
+  { title: "天官賜福", items: ["アニメ", "小説"] },
+  { title: "山河令", items: ["ドラマ", "小説"] },
+  { title: "陳情令外伝", items: ["小説"] }
+];
+
+// チェックボックス生成
+const app = document.getElementById("app");
+works.forEach((work, i) => {
+  const div = document.createElement("div");
+  div.className = "work";
+
+  let html = `<strong>${work.title}</strong><br>`;
+  work.items.forEach((item, j) => {
+    html += `
+      <label>
+        <input type="checkbox" id="w${i}-${j}">
+        ${item}
+      </label><br>
+    `;
+  });
+
+  div.innerHTML = html;
+  app.appendChild(div);
+});
+
+// 画像生成
+function generate() {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // 背景
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  let y = 60;
+
+  // タイトル
+  ctx.fillStyle = "#000";
+  ctx.font = "bold 30px sans-serif";
+  ctx.fillText("私の中華作品履修チェック", 50, y);
+
+  y += 50;
+
+  works.forEach((work, i) => {
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText(work.title, 50, y);
+    y += 40;
+
+    work.items.forEach((item, j) => {
+      const checked = document.getElementById(`w${i}-${j}`).checked;
+      ctx.font = "20px sans-serif";
+      ctx.fillText((checked ? "☑ " : "⬜ ") + item, 70, y);
+      y += 30;
+    });
+
+    y += 20;
+  });
+}
+</script>
+
+</body>
+</html>
