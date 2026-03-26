@@ -9,7 +9,7 @@
   summary { cursor: pointer; font-size: 20px; font-weight: bold; }
   label { display: block; margin-left: 20px; }
   button { margin-top: 15px; padding: 10px 15px; font-size: 16px; }
-  canvas { border:1px solid #ccc; margin-top: 20px; }
+  canvas { border:1px solid #ccc; margin-top: 20px; max-width: 100%; }
 </style>
 </head>
 <body>
@@ -20,6 +20,7 @@
 <div id="canvasContainer"></div>
 
 <script>
+// データ
 const authors = [
   {
     name: "墨香銅臭",
@@ -103,13 +104,31 @@ document.getElementById("generate").addEventListener("click", () => {
   const canvasContainer = document.getElementById("canvasContainer");
   canvasContainer.innerHTML = ""; // 前の削除
 
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  canvas.width = 1000;
-  let y = 40;
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, canvas.width, 2000); // 背景白
+  // 高さ計算
+  let totalHeight = 40;
+  authors.forEach(author => {
+    totalHeight += 40;
+    author.works.forEach(work => {
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      if (selectedItems.length === 0) return;
+      totalHeight += 30;
+      totalHeight += selectedItems.length * 28;
+      totalHeight += 20;
+    });
+    totalHeight += 30;
+  });
 
+  const canvas = document.createElement("canvas");
+  canvas.width = 1000;
+  canvas.height = totalHeight;
+  const ctx = canvas.getContext("2d");
+
+  // 背景白
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 描画
+  let y = 40;
   authors.forEach(author => {
     ctx.font = "bold 26px sans-serif";
     ctx.fillStyle = "#333";
