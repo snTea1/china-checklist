@@ -2,123 +2,169 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>中華作品履修チェック</title>
+<title>中華作品チェックリスト</title>
 <style>
-  body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
-  h1 { text-align: center; margin-bottom: 20px; }
-  .work { margin-bottom: 15px; padding: 10px; background: white; border-radius: 10px; }
-  button { display: block; margin: 10px auto; padding: 10px 20px; font-size: 16px; }
-  canvas { display: block; margin: 20px auto; border: 1px solid #ccc; }
+  body { font-family: sans-serif; padding: 20px; background: #f8f8f8; }
+  details { margin-bottom: 10px; }
+  summary { cursor: pointer; font-size: 20px; font-weight: bold; }
+  label { display: block; margin-left: 20px; }
+  button { margin-top: 15px; padding: 10px 15px; font-size: 16px; }
+  canvas { border:1px solid #ccc; margin-top: 20px; }
 </style>
 </head>
 <body>
 
-<h1>私の中華作品履修チェック</h1>
-
-<div id="app"></div>
-
-<button onclick="generate()">画像を作る</button>
-<button onclick="saveImage()">JPEGで保存</button>
-<button onclick="shareImage()">共有する（iPhone向け）</button>
-
-<canvas id="canvas" width="800" height="1200"></canvas>
+<h1>中華作品チェックリスト</h1>
+<div id="checklist"></div>
+<button id="generate">Canvas生成＆JPEG保存</button>
+<div id="canvasContainer"></div>
 
 <script>
-// 作品リスト（author, title, items）
-const works = [
-  { title: "魔道祖師", author: "墨香銅臭", items: ["ドラマ（陳情令）", "アニメ", "小説"] },
-  { title: "天官賜福", author: "墨香銅臭", items: ["アニメ", "小説"] },
-  { title: "山河令", author: "作者B", items: ["ドラマ", "小説"] },
-  { title: "陳情令外伝", author: "作者C", items: ["小説"] }
+const authors = [
+  {
+    name: "墨香銅臭",
+    works: [
+      {
+        title: "天官賜福",
+        items: [
+          "小説 ▶邦訳版", "小説 ▶繁体字版", "小説 ▶簡体字版", "小説 ▶完全版（晋江）",
+          "アニメ ▶一期", "アニメ ▶二期", "アニメ ▶短編1", "アニメ ▶短編2", "アニメ ▶短編3",
+          "ラジオドラマ ▶一季", "ラジオドラマ ▶二季", "ラジオドラマ ▶三季",
+          "漫画 ▶邦訳版", "漫画 ▶繁体字版"
+        ]
+      },
+      {
+        title: "魔道祖師",
+        items: [
+          "小説 ▶邦訳版", "小説 ▶繁体字版", "小説 ▶晋江",
+          "アニメ ▶一期", "アニメ ▶二期", "アニメ ▶三期",
+          "ドラマ（陳情令） ▶本編", "ドラマ（陳情令） ▶生魂", "ドラマ（陳情令） ▶乱魄",
+          "ラジオドラマ ▶本国版", "ラジオドラマ ▶日本版",
+          "舞台 ▶邂逅編", "舞台 ▶湖洄編", "コミック"
+        ]
+      }
+    ]
+  },
+  {
+    name: "Priest",
+    works: [
+      {
+        title: "七爷",
+        items: ["小説 ▶晋江"]
+      }
+    ]
+  },
+  {
+    name: "不明",
+    works: [
+      {
+        title: "人渣反派自救系統",
+        items: ["小説 ▶繁体字版", "小説 ▶邦訳版", "小説 ▶晋江", "アニメ ▶一期", "アニメ ▶二期"]
+      }
+    ]
+  }
 ];
 
-// チェックボックス生成
-const app = document.getElementById("app");
-works.forEach((work, i) => {
-  const div = document.createElement("div");
-  div.className = "work";
+// チェックリスト生成
+const checklistContainer = document.getElementById("checklist");
+authors.forEach(author => {
+  const authorDetails = document.createElement("details");
+  authorDetails.open = true;
+  const authorSummary = document.createElement("summary");
+  authorSummary.textContent = author.name;
+  authorDetails.appendChild(authorSummary);
 
-  let html = `<strong>${work.title}</strong>（${work.author}）<br>`;
-  work.items.forEach((item, j) => {
-    html += `
-      <label>
-        <input type="checkbox" id="w${i}-${j}">
-        ${item}
-      </label><br>
-    `;
+  author.works.forEach(work => {
+    const workDetails = document.createElement("details");
+    const workSummary = document.createElement("summary");
+    workSummary.textContent = work.title;
+    workDetails.appendChild(workSummary);
+
+    work.items.forEach(item => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.author = author.name;
+      checkbox.dataset.work = work.title;
+      checkbox.dataset.item = item;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(" " + item));
+      workDetails.appendChild(label);
+    });
+
+    authorDetails.appendChild(workDetails);
   });
 
-  div.innerHTML = html;
-  app.appendChild(div);
+  checklistContainer.appendChild(authorDetails);
 });
 
-// 画像生成（選択済みのみ描画）
-function generate() {
-  const canvas = document.getElementById("canvas");
+// Canvas生成
+document.getElementById("generate").addEventListener("click", () => {
+  const canvasContainer = document.getElementById("canvasContainer");
+  canvasContainer.innerHTML = ""; // 前の削除
+
+  const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
+  canvas.width = 1000;
+  let y = 40;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, 2000); // 背景白
 
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  authors.forEach(author => {
+    ctx.font = "bold 26px sans-serif";
+    ctx.fillStyle = "#333";
+    ctx.fillText(author.name, 50, y);
+    y += 40;
 
-  let y = 60;
+    author.works.forEach(work => {
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      if (selectedItems.length === 0) return;
 
-  works.forEach((work, i) => {
-    const selectedItems = work.items.filter((_, j) => document.getElementById(`w${i}-${j}`).checked);
-
-    if (selectedItems.length > 0) {
-      // 作者
-      ctx.font = "italic 20px sans-serif";
-      ctx.fillStyle = "#555";
-      ctx.fillText("作者：" + work.author, 50, y);
-      y += 30;
-
-      // 作品タイトル
       ctx.font = "bold 24px sans-serif";
       ctx.fillStyle = "#000";
-      ctx.fillText(work.title, 50, y);
-      y += 40;
+      ctx.fillText(work.title, 70, y);
+      y += 30;
 
-      // 選択済み項目
       selectedItems.forEach(item => {
         ctx.font = "20px sans-serif";
-        ctx.fillText("☑ " + item, 70, y);
-        y += 30;
+        ctx.fillText("☑ " + item, 90, y);
+        y += 28;
       });
 
-      y += 20; // 作品間余白
-    }
+      y += 20;
+    });
+
+    y += 30;
   });
-}
 
-// JPEG保存
-function saveImage() {
-  const canvas = document.getElementById("canvas");
-  const link = document.createElement('a');
-  link.download = 'my_chinese_checklist.jpg';
-  link.href = canvas.toDataURL("image/jpeg", 0.92);
-  link.click();
-}
+  canvasContainer.appendChild(canvas);
 
-// iPhone向け共有
-async function shareImage() {
-  const canvas = document.getElementById("canvas");
-  canvas.toBlob(async (blob) => {
-    const file = new File([blob], "my_checklist.jpg", { type: "image/jpeg" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
+  // JPEG保存リンク
+  const link = document.createElement("a");
+  link.download = "作品チェックリスト.jpg";
+  link.href = canvas.toDataURL("image/jpeg", 0.9);
+  link.textContent = "JPEG保存";
+  link.style.display = "block";
+  link.style.marginTop = "10px";
+  canvasContainer.appendChild(link);
+
+  // SNS共有（対応ブラウザのみ）
+  if (navigator.share) {
+    const shareBtn = document.createElement("button");
+    shareBtn.textContent = "SNSで共有";
+    shareBtn.onclick = () => {
+      canvas.toBlob(blob => {
+        const file = new File([blob], "作品チェックリスト.jpg", { type: "image/jpeg" });
+        navigator.share({
           files: [file],
-          title: "中華作品履修チェック",
-          text: "私のチェックリストを作ってみた📚🔥"
+          title: "作品チェックリスト",
+          text: "私の中華作品チェックリストです！"
         });
-      } catch (err) {
-        alert("共有できませんでした: " + err);
-      }
-    } else {
-      alert("このブラウザでは共有できません。長押しで保存してください。");
-    }
-  }, "image/jpeg", 0.92);
-}
+      });
+    };
+    canvasContainer.appendChild(shareBtn);
+  }
+});
 </script>
 
 </body>
