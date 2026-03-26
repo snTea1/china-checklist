@@ -99,37 +99,68 @@ authors.forEach(author => {
   checklistContainer.appendChild(authorDetails);
 });
 
+// アコーディオン対応（階層両方）
+function makeAccordion(selector) {
+  document.querySelectorAll(selector).forEach(detail => {
+    detail.addEventListener('toggle', e => {
+      if (detail.open) {
+        // 同階層の他を閉じる
+        const parent = detail.parentNode;
+        parent.querySelectorAll(':scope > details').forEach(other => {
+          if (other !== detail) other.open = false;
+        });
+      }
+    });
+  });
+}
+
+// 作者レベル
+makeAccordion('#checklist > details');
+// 作品レベル
+makeAccordion('#checklist details details');
+
 // Canvas生成
 document.getElementById("generate").addEventListener("click", () => {
   const canvasContainer = document.getElementById("canvasContainer");
-  canvasContainer.innerHTML = ""; // 前の削除
+  canvasContainer.innerHTML = "";
 
   // 高さ計算
   let totalHeight = 40;
   authors.forEach(author => {
-    totalHeight += 40;
+    let authorHasSelection = false;
+    author.works.forEach(work => {
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      if (selectedItems.length > 0) authorHasSelection = true;
+    });
+    if (!authorHasSelection) return;
+    totalHeight += 40; // 作者
     author.works.forEach(work => {
       const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
       if (selectedItems.length === 0) return;
-      totalHeight += 30;
+      totalHeight += 30; // 作品タイトル
       totalHeight += selectedItems.length * 28;
       totalHeight += 20;
     });
-    totalHeight += 30;
+    totalHeight += 30; // 作者間
   });
 
   const canvas = document.createElement("canvas");
   canvas.width = 1000;
   canvas.height = totalHeight;
   const ctx = canvas.getContext("2d");
-
-  // 背景白
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // 描画
   let y = 40;
   authors.forEach(author => {
+    let authorHasSelection = false;
+    author.works.forEach(work => {
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      if (selectedItems.length > 0) authorHasSelection = true;
+    });
+    if (!authorHasSelection) return;
+
     ctx.font = "bold 26px sans-serif";
     ctx.fillStyle = "#333";
     ctx.fillText(author.name, 50, y);
@@ -167,7 +198,7 @@ document.getElementById("generate").addEventListener("click", () => {
   link.style.marginTop = "10px";
   canvasContainer.appendChild(link);
 
-  // SNS共有（対応ブラウザのみ）
+  // SNS共有
   if (navigator.share) {
     const shareBtn = document.createElement("button");
     shareBtn.textContent = "SNSで共有";
