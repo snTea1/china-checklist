@@ -7,28 +7,32 @@
   body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; padding: 20px; background: #fdfaf5; color: #333; }
   h1 { border-bottom: 2px solid #8b0000; padding-bottom: 10px; color: #8b0000; }
   
-  /* リスト全体のコンテナ */
   #checklist { margin-top: 20px; }
 
   /* 作者レベル */
   .author-details { margin-bottom: 15px; border: 2px solid #8b0000; border-radius: 8px; overflow: hidden; background: #fff; }
-  .author-summary { cursor: pointer; font-size: 20px; font-weight: bold; padding: 12px; background: #f0ede9; outline: none; list-style: none; display: flex; align-items: center; }
+  .author-summary { cursor: pointer; font-size: 19px; font-weight: bold; padding: 12px; background: #f0ede9; outline: none; list-style: none; display: flex; align-items: center; }
   .author-summary::before { content: "👤 "; margin-right: 8px; }
 
   /* 作品レベル */
   .work-details { margin: 5px 10px 10px 25px; border: 1px solid #ccc; border-radius: 5px; }
-  .work-summary { cursor: pointer; font-size: 16px; font-weight: bold; padding: 8px; background: #fafafa; outline: none; list-style: none; color: #444; }
-  .work-summary::before { content: "✴︎ "; margin-right: 8px; font-size: 14px; }
+  .work-summary { cursor: pointer; font-size: 16px; font-weight: bold; padding: 8px; background: #fafafa; outline: none; list-style: none; color: #444; display: flex; align-items: center; }
+  .work-summary::before { content: "✴︎ "; margin-right: 8px; font-size: 18px; color: #8b0000; }
 
-  /* 項目レベル（ラベル） */
+  /* 項目レベル */
   label { display: block; margin-left: 35px; margin-bottom: 2px; padding: 8px; border-bottom: 1px dashed #eee; cursor: pointer; font-size: 14px; color: #555; }
   label:hover { background: #fff5f5; }
 
-  /* 共通の矢印制御 */
+  /* 矢印 */
   details[open] > summary::after { content: " ▼"; font-size: 12px; margin-left: auto; color: #8b0000; }
   details:not([open]) > summary::after { content: " ▶"; font-size: 12px; margin-left: auto; color: #999; }
 
-  .controls { margin-top: 30px; text-align: center; }
+  .controls { margin-top: 30px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+  
+  /* 名前入力欄のスタイル */
+  #userNameInput { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 300px; text-align: center; }
+  #userNameInput:focus { border-color: #8b0000; outline: none; box-shadow: 0 0 5px rgba(139, 0, 0, 0.3); }
+
   button { padding: 12px 30px; font-size: 18px; cursor: pointer; background: #8b0000; color: white; border: none; border-radius: 50px; box-shadow: 0 4px 0 #5a0000; transition: 0.1s; }
   button:active { transform: translateY(3px); box-shadow: none; }
   canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; display: block; margin-left: auto; margin-right: auto; }
@@ -40,6 +44,7 @@
 <div id="checklist"></div>
 
 <div class="controls">
+  <input type="text" id="userNameInput" placeholder="お名前・Twitter IDなどを入力" maxlength="20">
   <button id="generate">画像を生成する</button>
 </div>
 
@@ -86,20 +91,16 @@ authors.forEach((author, aIdx) => {
       const label = document.createElement("label");
       const groupName = `radio-${aIdx}-${wIdx}-${iIdx}`;
       label.appendChild(document.createTextNode(item + " ： "));
-
       const finished = createRadio(groupName, author.name, work.title, item, "finished");
       label.appendChild(finished);
       label.appendChild(document.createTextNode(" 完走 "));
-
       const reading = createRadio(groupName, author.name, work.title, item, "reading");
       label.appendChild(reading);
       label.appendChild(document.createTextNode(" 履修中 "));
-
       const none = createRadio(groupName, author.name, work.title, item, "none");
       none.checked = true;
       label.appendChild(none);
       label.appendChild(document.createTextNode(" 未選択"));
-
       workDetails.appendChild(label);
     });
     authorDetails.appendChild(workDetails);
@@ -107,7 +108,6 @@ authors.forEach((author, aIdx) => {
   checklistContainer.appendChild(authorDetails);
 });
 
-// 排他制御
 document.querySelectorAll('details').forEach(target => {
   target.addEventListener('toggle', () => {
     if (target.open) {
@@ -129,7 +129,6 @@ function createRadio(name, author, work, item, status) {
   return radio;
 }
 
-// 描画用ヘルパー
 function drawRoundedRectCompat(ctx, x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -151,11 +150,17 @@ document.getElementById("generate").addEventListener("click", () => {
     const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked')).filter(input => input.dataset.status !== "none");
     if (allChecked.length === 0) { alert("項目を選択してください"); return; }
 
+    // お名前と日付の取得
+    const userName = document.getElementById("userNameInput").value || "匿名の中推し";
+    const dateObj = new Date();
+    const dateStr = `作成日: ${dateObj.getFullYear()}/${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+
+    // 高さ計算
     let calcY = 70;
     authors.forEach(author => {
       const authorItems = allChecked.filter(i => i.dataset.author === author.name);
       if (authorItems.length === 0) return;
-      calcY += 60;
+      calcY += 70;
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
       const isTwoColumn = targetWorks.length >= 2;
       let maxY = calcY;
@@ -174,8 +179,14 @@ document.getElementById("generate").addEventListener("click", () => {
       calcY = maxY + 80;
     });
 
-    const canvas = document.createElement("canvas");
-    canvas.width = 800; canvas.height = calcY;
+    // お名前と日付用のスペース（高さ）を追加
+    const footerHeight = 60;
+    canvas.height = calcY + footerHeight; 
+    
+    // キャンバスのリサイズ（高さ計算を反映）
+    canvas.width = 800;
+    // (既にheightはcalcY+footerHeightに設定済み)
+
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#fffaf0"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 10; ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
@@ -214,7 +225,7 @@ document.getElementById("generate").addEventListener("click", () => {
             ctx.fillStyle = "#006400"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
           } else {
             ctx.strokeStyle = "#ff8c00"; ctx.lineWidth = 2; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.stroke();
-            ctx.fillStyle = "#ff8c00"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item + " (履修中)", bX + 35, currentY);
+            ctx.fillStyle = "#ff8c00"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
           }
           currentY += 40;
         });
@@ -222,6 +233,20 @@ document.getElementById("generate").addEventListener("click", () => {
       });
       currentY = maxYInA + 60;
     });
+
+    // --- 日付とお名前の描画 (右下コーナー) ---
+    ctx.font = "18px serif";
+    ctx.fillStyle = "#8b0000"; // エンジ色
+    ctx.textAlign = "right"; // 右揃え
+
+    const footerX = canvas.width - 30; // 右端からの余白
+    const footerYStart = canvas.height - 40; // 下端からの余白
+
+    ctx.fillText(`作成者: ${userName}`, footerX, footerYStart);
+    ctx.fillText(dateStr, footerX, footerYStart + 25);
+
+    // テキスト設定をリセット（重要）
+    ctx.textAlign = "left"; 
 
     canvasContainer.appendChild(canvas);
     const link = document.createElement("a");
