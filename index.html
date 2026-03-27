@@ -4,199 +4,191 @@
 <meta charset="UTF-8">
 <title>中華作品チェックリスト</title>
 <style>
-  body { font-family: sans-serif; padding: 20px; background: #f8f8f8; }
-  details { margin-bottom: 10px; }
-  summary { cursor: pointer; font-size: 20px; font-weight: bold; }
-  label { display: block; margin-left: 20px; margin-bottom: 4px; }
-  .status { margin-left: 10px; }
-  button { margin-top: 15px; padding: 10px 15px; font-size: 16px; }
-  canvas { border:1px solid #ccc; margin-top: 20px; max-width: 100%; }
+  body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; padding: 20px; background: #fdfaf5; color: #333; }
+  h1 { border-bottom: 2px solid #8b0000; padding-bottom: 10px; color: #8b0000; }
+  details { margin-bottom: 10px; background: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 5px; }
+  summary { cursor: pointer; font-size: 18px; font-weight: bold; padding: 5px; outline: none; }
+  label { display: block; margin-left: 25px; margin-bottom: 8px; padding: 5px; border-bottom: 1px dashed #eee; cursor: pointer; }
+  label:hover { background: #fff5f5; }
+  .controls { margin-top: 20px; display: flex; gap: 10px; }
+  button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #8b0000; color: white; border: none; border-radius: 5px; }
+  button:hover { background: #a00000; }
+  canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; }
 </style>
 </head>
 <body>
 
-<h1>中華作品チェックリスト</h1>
+<h1>🏮 中華作品チェックリスト</h1>
 <div id="checklist"></div>
-<button id="generate">Canvas生成＆JPEG保存</button>
+
+<div class="controls">
+  <button id="generate">画像生成＆保存</button>
+</div>
+
 <div id="canvasContainer"></div>
 
 <script>
-// データ例
 const authors = [
   {
     name: "墨香銅臭",
     works: [
       { title: "天官賜福", items: ["小説 ▶邦訳版", "アニメ ▶一期", "ラジオドラマ ▶一季"] },
-      { title: "魔道祖師", items: ["小説 ▶邦訳版", "アニメ ▶一期", "ドラマ ▶本編"] }
+      { title: "魔道祖師", items: ["小説 ▶邦訳版", "アニメ ▶一期", "ドラマ ▶陳情令"] },
+      { title: "人渣反派自救系統", items: ["小説 ▶繁体字版", "アニメ ▶穿書自救指南"] }
     ]
   },
   {
     name: "Priest",
     works: [
-      { title: "七爷", items: ["小説 ▶晋江"] }
+      { title: "山河令 (天涯客)", items: ["ドラマ ▶本編", "小説 ▶邦訳版"] },
+      { title: "鎮魂", items: ["ドラマ ▶本編", "小説 ▶邦訳版"] }
     ]
   }
 ];
 
-// チェックリスト生成
 const checklistContainer = document.getElementById("checklist");
-authors.forEach(author => {
+
+authors.forEach((author, aIdx) => {
   const authorDetails = document.createElement("details");
   const authorSummary = document.createElement("summary");
   authorSummary.textContent = author.name;
   authorDetails.appendChild(authorSummary);
 
-  author.works.forEach(work => {
+  author.works.forEach((work, wIdx) => {
     const workDetails = document.createElement("details");
     const workSummary = document.createElement("summary");
-    workSummary.textContent = work.title;
+    workSummary.textContent = "└ " + work.title;
     workDetails.appendChild(workSummary);
 
-    work.items.forEach(item => {
+    work.items.forEach((item, iIdx) => {
       const label = document.createElement("label");
-      label.textContent = item;
+      const groupName = `radio-${aIdx}-${wIdx}-${iIdx}`; // ユニークなグループ名
 
-      const finished = document.createElement("input");
-      finished.type = "checkbox";
-      finished.dataset.author = author.name;
-      finished.dataset.work = work.title;
-      finished.dataset.item = item;
-      finished.dataset.status = "finished";
+      label.appendChild(document.createTextNode(item + " ： "));
+
+      // 完走
+      const finished = createRadio(groupName, author.name, work.title, item, "finished");
       label.appendChild(finished);
-      label.appendChild(document.createTextNode(" 読み終えた"));
+      label.appendChild(document.createTextNode(" 完走 "));
 
-      const reading = document.createElement("input");
-      reading.type = "checkbox";
-      reading.dataset.author = author.name;
-      reading.dataset.work = work.title;
-      reading.dataset.item = item;
-      reading.dataset.status = "reading";
+      // 履修中
+      const reading = createRadio(groupName, author.name, work.title, item, "reading");
       label.appendChild(reading);
-      label.appendChild(document.createTextNode(" 読んでる途中"));
+      label.appendChild(document.createTextNode(" 履修中 "));
+
+      // 未選択 (リセット用)
+      const none = createRadio(groupName, author.name, work.title, item, "none");
+      none.checked = true; // デフォルト
+      label.appendChild(none);
+      label.appendChild(document.createTextNode(" 未選択"));
 
       workDetails.appendChild(label);
     });
-
     authorDetails.appendChild(workDetails);
   });
-
   checklistContainer.appendChild(authorDetails);
 });
 
-// アコーディオン機能
-function makeAccordion(selector) {
-  document.querySelectorAll(selector).forEach(detail => {
-    detail.addEventListener('toggle', e => {
-      if (detail.open) {
-        const parent = detail.parentNode;
-        parent.querySelectorAll(':scope > details').forEach(other => {
-          if (other !== detail) other.open = false;
-        });
-      }
-    });
-  });
+function createRadio(name, author, work, item, status) {
+  const radio = document.createElement("input");
+  radio.type = "radio";
+  radio.name = name;
+  radio.dataset.author = author;
+  radio.dataset.work = work;
+  radio.dataset.item = item;
+  radio.dataset.status = status;
+  return radio;
 }
-makeAccordion('#checklist > details'); // 作者レベル
-makeAccordion('#checklist details details'); // 作品レベル
 
 // Canvas生成
 document.getElementById("generate").addEventListener("click", () => {
   const canvasContainer = document.getElementById("canvasContainer");
   canvasContainer.innerHTML = "";
 
-  let totalHeight = 40;
+  // 選択された（完走・履修中のみ）を取得
+  const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked'))
+                          .filter(input => input.dataset.status !== "none");
+
+  if (allChecked.length === 0) {
+    alert("項目を1つ以上選択してください。");
+    return;
+  }
+
+  // 高さの簡易計算
+  let y = 60;
+  const canvasWidth = 800;
+  
+  // 計算用に一旦高さを出す
+  let totalHeight = 100;
   authors.forEach(author => {
-    let authorHasSelection = false;
+    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
+    if (authorItems.length === 0) return;
+    totalHeight += 50; // 作者名
     author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
-      if (selectedItems.length > 0) authorHasSelection = true;
+      const workItems = authorItems.filter(i => i.dataset.work === work.title);
+      if (workItems.length === 0) return;
+      totalHeight += 40 + (workItems.length * 30) + 20; // タイトル + 項目 + 余白
     });
-    if (!authorHasSelection) return;
-    totalHeight += 40;
-    author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
-      if (selectedItems.length === 0) return;
-      totalHeight += 30 + selectedItems.length * 28 + 20;
-    });
-    totalHeight += 30;
   });
 
   const canvas = document.createElement("canvas");
-  canvas.width = 1000;
+  canvas.width = canvasWidth;
   canvas.height = totalHeight;
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#fff";
+
+  // 背景
+  ctx.fillStyle = "#fffaf0"; 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "#8b0000";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
 
-  let y = 40;
+  let currentY = 60;
   authors.forEach(author => {
-    let authorHasSelection = false;
-    author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
-      if (selectedItems.length > 0) authorHasSelection = true;
-    });
-    if (!authorHasSelection) return;
+    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
+    if (authorItems.length === 0) return;
 
-    ctx.font = "bold 26px sans-serif";
-    ctx.fillStyle = "#333";
-    ctx.fillText(author.name, 50, y);
-    y += 40;
+    // 作者名
+    ctx.font = "bold 32px serif";
+    ctx.fillStyle = "#8b0000";
+    ctx.fillText("【 " + author.name + " 】", 40, currentY);
+    currentY += 50;
 
     author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
-      if (selectedItems.length === 0) return;
+      const workItems = authorItems.filter(i => i.dataset.work === work.title);
+      if (workItems.length === 0) return;
 
+      // 作品名
       ctx.font = "bold 24px sans-serif";
-      ctx.fillStyle = "#000";
-      ctx.fillText(work.title, 70, y);
-      y += 30;
+      ctx.fillStyle = "#333";
+      ctx.fillText("■ " + work.title, 60, currentY);
+      currentY += 40;
 
-      selectedItems.forEach(input => {
+      // 項目
+      workItems.forEach(input => {
+        ctx.font = "22px sans-serif";
         if (input.dataset.status === "finished") {
-          ctx.fillStyle = "green";
-          ctx.fillText("☑ " + input.dataset.item, 90, y);
-        } else if (input.dataset.status === "reading") {
-          ctx.fillStyle = "orange";
-          ctx.fillText("⬤ " + input.dataset.item, 90, y);
+          ctx.fillStyle = "#006400";
+          ctx.fillText("☑ " + input.dataset.item, 90, currentY);
+        } else {
+          ctx.fillStyle = "#ff8c00";
+          ctx.fillText("≫ " + input.dataset.item + " (履修中)", 90, currentY);
         }
-        y += 28;
+        currentY += 35;
       });
-
-      y += 20;
+      currentY += 20;
     });
-
-    y += 30;
   });
 
   canvasContainer.appendChild(canvas);
-
-  // JPEG保存リンク
+  
+  // 保存リンク
   const link = document.createElement("a");
-  link.download = "作品チェックリスト.jpg";
-  link.href = canvas.toDataURL("image/jpeg", 0.9);
-  link.textContent = "JPEG保存";
-  link.style.display = "block";
-  link.style.marginTop = "10px";
+  link.download = "中華作品チェックリスト.jpg";
+  link.href = canvas.toDataURL("image/jpeg", 0.8);
+  link.innerHTML = "<br><button>画像をダウンロード保存</button>";
   canvasContainer.appendChild(link);
-
-  // SNS共有
-  if (navigator.share) {
-    const shareBtn = document.createElement("button");
-    shareBtn.textContent = "SNSで共有";
-    shareBtn.onclick = () => {
-      canvas.toBlob(blob => {
-        const file = new File([blob], "作品チェックリスト.jpg", { type: "image/jpeg" });
-        navigator.share({
-          files: [file],
-          title: "作品チェックリスト",
-          text: "私の中華作品チェックリストです！"
-        });
-      });
-    };
-    canvasContainer.appendChild(shareBtn);
-  }
 });
 </script>
-
 </body>
 </html>
