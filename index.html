@@ -52,7 +52,6 @@ const authors = [
 
 const checklistContainer = document.getElementById("checklist");
 
-// リストの動的生成
 authors.forEach((author, aIdx) => {
   const authorDetails = document.createElement("details");
   const authorSummary = document.createElement("summary");
@@ -88,4 +87,169 @@ authors.forEach((author, aIdx) => {
     });
     authorDetails.appendChild(workDetails);
   });
-  checklistContainer.appendChild(authorDetails
+  checklistContainer.appendChild(authorDetails);
+});
+
+// 排他制御
+document.querySelectorAll('details').forEach(target => {
+  target.addEventListener('toggle', () => {
+    if (target.open) {
+      document.querySelectorAll('details').forEach(other => {
+        if (other !== target && !other.contains(target)) {
+          other.open = false;
+        }
+      });
+    }
+  });
+});
+
+function createRadio(name, author, work, item, status) {
+  const radio = document.createElement("input");
+  radio.type = "radio";
+  radio.name = name;
+  radio.dataset.author = author;
+  radio.dataset.work = work;
+  radio.dataset.item = item;
+  radio.dataset.status = status;
+  return radio;
+}
+
+// 角丸四角を描画する汎用関数
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.arcTo(x + width, y, x + width, y + radius, radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+  ctx.lineTo(x + radius, y + height);
+  ctx.arcTo(x, y + height, x, y + height - radius, radius);
+  ctx.lineTo(x, y + radius);
+  ctx.arcTo(x, y, x + radius, y, radius);
+  ctx.closePath();
+}
+
+document.getElementById("generate").addEventListener("click", () => {
+  const canvasContainer = document.getElementById("canvasContainer");
+  canvasContainer.innerHTML = "";
+
+  const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked'))
+                          .filter(input => input.dataset.status !== "none");
+
+  if (allChecked.length === 0) {
+    alert("項目を1つ以上選択してください。");
+    return;
+  }
+
+  // 高さの計算
+  let currentYForCalc = 60;
+  authors.forEach(author => {
+    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
+    if (authorItems.length === 0) return;
+    currentYForCalc += 50;
+    const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
+    const isTwoColumn = targetWorks.length >= 2;
+    
+    let authorMaxY = currentYForCalc;
+    let tempY = currentYForCalc;
+    targetWorks.forEach((work, idx) => {
+      const itemsCount = authorItems.filter(i => i.dataset.work === work.title).length;
+      const h = 40 + (itemsCount * 40);
+      if (isTwoColumn) {
+        if (idx % 2 === 0) { tempY = currentYForCalc + h; } 
+        else { authorMaxY = Math.max(tempY, currentYForCalc + h); }
+      } else {
+        currentYForCalc += h + 20;
+        authorMaxY = currentYForCalc;
+      }
+    });
+    currentYForCalc = authorMaxY + 50;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 800;
+  canvas.height = currentYForCalc;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#fffaf0"; 
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "#8b0000";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
+
+  let currentY = 60;
+  authors.forEach(author => {
+    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
+    if (authorItems.length === 0) return;
+
+    ctx.font = "bold 32px serif";
+    ctx.fillStyle = "#8b0000";
+    ctx.fillText("【 " + author.name + " 】", 40, currentY);
+    currentY += 50;
+
+    const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
+    const isTwoColumn = targetWorks.length >= 2;
+    let maxYInAuthor = currentY;
+    let startY = currentY;
+
+    targetWorks.forEach((work, index) => {
+      const workItems = authorItems.filter(i => i.dataset.work === work.title);
+      let xOffset = 60;
+      if (isTwoColumn) {
+        const xIdx = index % 2;
+        xOffset = 60 + (xIdx * 370);
+        if (xIdx === 1) { currentY = startY; } 
+        else if (index > 0) { currentY = maxYInAuthor + 30; startY = currentY; }
+      }
+
+      ctx.font = "bold 24px sans-serif";
+      ctx.fillStyle = "#333";
+      ctx.fillText("■ " + work.title, xOffset, currentY);
+      currentY += 40;
+
+      workItems.forEach(input => {
+        const boxSize = 24;
+        const boxX = xOffset + 30;
+        const boxY = currentY - 20;
+        const r = 5;
+
+        ctx.lineWidth = 2;
+        if (input.dataset.status === "finished") {
+          ctx.fillStyle = "#006400";
+          drawRoundedRect(ctx, boxX, boxY, boxSize, boxSize, r);
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(boxX + 5, boxY + 12);
+          ctx.lineTo(boxX + 10, boxY + 18);
+          ctx.lineTo(boxX + 19, boxY + 6);
+          ctx.stroke();
+          ctx.fillStyle = "#006400";
+          ctx.font = "22px sans-serif";
+          ctx.fillText(input.dataset.item, boxX + 35, currentY);
+        } else {
+          ctx.strokeStyle = "#ff8c00";
+          drawRoundedRect(ctx, boxX, boxY, boxSize, boxSize, r);
+          ctx.stroke();
+          ctx.fillStyle = "#ff8c00";
+          ctx.font = "22px sans-serif";
+          ctx.fillText(input.dataset.item + " (履修中)", boxX + 35, currentY);
+        }
+        currentY += 40;
+      });
+      if (currentY > maxYInAuthor) maxYInAuthor = currentY;
+    });
+    currentY = maxYInAuthor + 50;
+  });
+
+  canvasContainer.appendChild(canvas);
+  const link = document.createElement("a");
+  link.download = "作品チェックリスト.jpg";
+  link.href = canvas.toDataURL("image/jpeg", 0.8);
+  link.innerHTML = "<br><button>画像をダウンロード保存</button>";
+  canvasContainer.appendChild(link);
+});
+</script>
+</body>
+</html>
