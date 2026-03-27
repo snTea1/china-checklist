@@ -32,6 +32,7 @@
 <div id="canvasContainer"></div>
 
 <script>
+// データ
 const authors = [
   {
     name: "墨香銅臭",
@@ -52,6 +53,7 @@ const authors = [
 
 const checklistContainer = document.getElementById("checklist");
 
+// リスト生成
 authors.forEach((author, aIdx) => {
   const authorDetails = document.createElement("details");
   const authorSummary = document.createElement("summary");
@@ -67,7 +69,6 @@ authors.forEach((author, aIdx) => {
     work.items.forEach((item, iIdx) => {
       const label = document.createElement("label");
       const groupName = `radio-${aIdx}-${wIdx}-${iIdx}`;
-
       label.appendChild(document.createTextNode(item + " ： "));
 
       const finished = createRadio(groupName, author.name, work.title, item, "finished");
@@ -90,13 +91,12 @@ authors.forEach((author, aIdx) => {
   checklistContainer.appendChild(authorDetails);
 });
 
+// 排他制御
 document.querySelectorAll('details').forEach(target => {
   target.addEventListener('toggle', () => {
     if (target.open) {
       document.querySelectorAll('details').forEach(other => {
-        if (other !== target && !other.contains(target)) {
-          other.open = false;
-        }
+        if (other !== target && !other.contains(target)) other.open = false;
       });
     }
   });
@@ -113,7 +113,8 @@ function createRadio(name, author, work, item, status) {
   return radio;
 }
 
-function drawRoundedRect(ctx, x, y, width, height, radius) {
+// 角丸を描画する互換性重視の関数
+function drawRoundedRectCompat(ctx, x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
   ctx.lineTo(x + width - radius, y);
@@ -128,98 +129,151 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
 }
 
 document.getElementById("generate").addEventListener("click", () => {
-  const canvasContainer = document.getElementById("canvasContainer");
-  canvasContainer.innerHTML = "";
+  try {
+    const canvasContainer = document.getElementById("canvasContainer");
+    canvasContainer.innerHTML = "";
 
-  const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked'))
-                          .filter(input => input.dataset.status !== "none");
+    const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked'))
+                            .filter(input => input.dataset.status !== "none");
 
-  if (allChecked.length === 0) {
-    alert("項目を1つ以上選択してください。");
-    return;
-  }
+    if (allChecked.length === 0) {
+      alert("項目を1つ以上選択してください。");
+      return;
+    }
 
-  // 高さを正確に計算するためのシミュレーション
-  let calcY = 60;
-  authors.forEach(author => {
-    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
-    if (authorItems.length === 0) return;
-
-    calcY += 60; // 作者名（点線スペース含む）
-    const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-    const isTwoColumn = targetWorks.length >= 2;
-    let maxYInAuthor = calcY;
-    let startY = calcY;
-
-    targetWorks.forEach((work, index) => {
-      const workItems = authorItems.filter(i => i.dataset.work === work.title);
-      let tempY = calcY;
-      if (isTwoColumn) {
-        if (index % 2 === 1) { tempY = startY; } 
-        else if (index > 0) { tempY = maxYInAuthor + 30; startY = tempY; }
-      }
-      tempY += 40 + (workItems.length * 40); // タイトル + 項目
-      if (tempY > maxYInAuthor) maxYInAuthor = tempY;
-      if (!isTwoColumn) calcY = maxYInAuthor + 20;
+    // 高さ計算
+    let calcY = 70;
+    authors.forEach(author => {
+      const authorItems = allChecked.filter(i => i.dataset.author === author.name);
+      if (authorItems.length === 0) return;
+      calcY += 60;
+      const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
+      const isTwoColumn = targetWorks.length >= 2;
+      let maxYInAuthor = calcY;
+      let startY = calcY;
+      targetWorks.forEach((work, index) => {
+        const workItems = authorItems.filter(i => i.dataset.work === work.title);
+        let tempY = calcY;
+        if (isTwoColumn) {
+          if (index % 2 === 1) { tempY = startY; } 
+          else if (index > 0) { tempY = maxYInAuthor + 30; startY = tempY; }
+        }
+        tempY += 40 + (workItems.length * 40);
+        if (tempY > maxYInAuthor) maxYInAuthor = tempY;
+        if (!isTwoColumn) calcY = maxYInAuthor + 20;
+      });
+      calcY = maxYInAuthor + 80;
     });
-    calcY = maxYInAuthor + 70;
-  });
 
-  const canvas = document.createElement("canvas");
-  canvas.width = 800;
-  canvas.height = calcY;
-  const ctx = canvas.getContext("2d");
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = calcY;
+    const ctx = canvas.getContext("2d");
 
-  // 背景と枠線
-  ctx.fillStyle = "#fffaf0"; 
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "#8b0000";
-  ctx.lineWidth = 10;
-  ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
+    ctx.fillStyle = "#fffaf0"; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#8b0000";
+    ctx.lineWidth = 10;
+    ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
 
-  let currentY = 70; // 初期位置を少し下げる
-  authors.forEach(author => {
-    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
-    if (authorItems.length === 0) return;
+    let currentY = 70;
+    authors.forEach(author => {
+      const authorItems = allChecked.filter(i => i.dataset.author === author.name);
+      if (authorItems.length === 0) return;
 
-    // --- 作者名と点線の描画 ---
-    ctx.font = "bold 32px serif";
-    ctx.fillStyle = "#8b0000";
-    ctx.strokeStyle = "#8b0000"; // 点線の色
-    ctx.lineWidth = 2; // 点線の太さ
-    ctx.setLineDash([10, 5]); // 点線の設定: 10px描画, 5px空ける
+      // 点線と作者名
+      ctx.font = "bold 32px serif";
+      ctx.fillStyle = "#8b0000";
+      ctx.strokeStyle = "#8b0000";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 5]);
 
-    const authorText = "【 " + author.name + " 】";
-    const textWidth = ctx.measureText(authorText).width;
-    const textX = (canvas.width / 2) - (textWidth / 2); // 中央揃え
-    const lineY = currentY - 10; // テキストの中央高さに合わせる
+      const authorText = "【 " + author.name + " 】";
+      const textWidth = ctx.measureText(authorText).width;
+      const textX = (canvas.width / 2) - (textWidth / 2);
+      const lineY = currentY - 10;
 
-    // 左側の点線
-    ctx.beginPath();
-    ctx.moveTo(40, lineY);
-    ctx.lineTo(textX - 15, lineY);
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(40, lineY);
+      ctx.lineTo(textX - 15, lineY);
+      ctx.stroke();
 
-    // 作者名テキスト
-    ctx.fillText(authorText, textX, currentY);
+      ctx.fillText(authorText, textX, currentY);
 
-    // 右側の点線
-    ctx.beginPath();
-    ctx.moveTo(textX + textWidth + 15, lineY);
-    ctx.lineTo(canvas.width - 40, lineY);
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(textX + textWidth + 15, lineY);
+      ctx.lineTo(canvas.width - 40, lineY);
+      ctx.stroke();
 
-    ctx.setLineDash([]); // 点線設定をリセット（重要）
-    currentY += 60; // 次の項目への間隔
+      ctx.setLineDash([]);
+      currentY += 60;
 
-    const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-    const isTwoColumn = targetWorks.length >= 2;
-    let maxYInAuthor = currentY;
-    let startY = currentY;
+      const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
+      const isTwoColumn = targetWorks.length >= 2;
+      let maxYInAuthor = currentY;
+      let startY = currentY;
 
-    targetWorks.forEach((work, index) => {
-      const workItems = authorItems.filter(i => i.dataset.work === work.title);
-      let xOffset = 60;
-      if (isTwoColumn) {
-        const xIdx = index % 2;
-        xOffset = 60
+      targetWorks.forEach((work, index) => {
+        const workItems = authorItems.filter(i => i.dataset.work === work.title);
+        let xOffset = 60;
+        if (isTwoColumn) {
+          const xIdx = index % 2;
+          xOffset = 60 + (xIdx * 370);
+          if (xIdx === 1) { currentY = startY; } 
+          else if (index > 0) { currentY = maxYInAuthor + 30; startY = currentY; }
+        }
+
+        ctx.font = "bold 24px sans-serif";
+        ctx.fillStyle = "#333";
+        ctx.fillText("■ " + work.title, xOffset, currentY);
+        currentY += 40;
+
+        workItems.forEach(input => {
+          const boxSize = 24;
+          const boxX = xOffset + 30;
+          const boxY = currentY - 20;
+          const r = 5;
+
+          if (input.dataset.status === "finished") {
+            ctx.fillStyle = "#006400";
+            drawRoundedRectCompat(ctx, boxX, boxY, boxSize, boxSize, r);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(boxX + 5, boxY + 12);
+            ctx.lineTo(boxX + 10, boxY + 18);
+            ctx.lineTo(boxX + 19, boxY + 6);
+            ctx.stroke();
+            ctx.fillStyle = "#006400";
+            ctx.font = "22px sans-serif";
+            ctx.fillText(input.dataset.item, boxX + 35, currentY);
+          } else {
+            ctx.strokeStyle = "#ff8c00";
+            ctx.lineWidth = 2;
+            drawRoundedRectCompat(ctx, boxX, boxY, boxSize, boxSize, r);
+            ctx.stroke();
+            ctx.fillStyle = "#ff8c00";
+            ctx.font = "22px sans-serif";
+            ctx.fillText(input.dataset.item + " (履修中)", boxX + 35, currentY);
+          }
+          currentY += 40;
+        });
+        if (currentY > maxYInAuthor) maxYInAuthor = currentY;
+      });
+      currentY = maxYInAuthor + 60;
+    });
+
+    canvasContainer.appendChild(canvas);
+    const link = document.createElement("a");
+    link.download = "作品チェックリスト.jpg";
+    link.href = canvas.toDataURL("image/jpeg", 0.8);
+    link.innerHTML = "<br><button style='margin-bottom:20px;'>画像を保存</button>";
+    canvasContainer.appendChild(link);
+  } catch (e) {
+    alert("エラーが発生しました: " + e.message);
+  }
+});
+</script>
+</body>
+</html>
