@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>中華作品チェックリスト</title>
+<title>中華履修リスト</title>
 <style>
   body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; padding: 20px; background: #fdfaf5; color: #333; }
   h1 { border-bottom: 2px solid #8b0000; padding-bottom: 10px; color: #8b0000; }
@@ -26,11 +26,15 @@
 </head>
 <body>
 
-<h1>🏮 中華作品チェックリスト</h1>
+<h1>🏮中華履修チェックリスト🏮</h1>
+
+<div class="controls" style="margin-top: 10px; margin-bottom: 20px; text-align: left; display: block; padding-left: 20px; justify-content: flex-start;">
+  <input type="text" id="userNameInput" placeholder="お名前・HNなどを入力" maxlength="20" style="width: 250px; text-align: left;">
+</div>
+
 <div id="checklist"></div>
 
-<div class="controls">
-  <input type="text" id="userNameInput" placeholder="お名前・IDなどを入力" maxlength="20">
+<div class="controls" style="margin-top: 20px;">
   <button id="generate">画像を生成する</button>
 </div>
 
@@ -41,16 +45,16 @@ const authors = [
   {
     name: "墨香銅臭",
     works: [
-      { title: "天官賜福", items: ["小説 ▶邦訳版", "アニメ ▶一期", "ラジオドラマ ▶一季"] },
-      { title: "魔道祖師", items: ["小説 ▶邦訳版", "アニメ ▶一期", "ドラマ ▶陳情令"] },
-      { title: "人渣反派自救系統", items: ["小説 ▶繁体字版", "アニメ ▶穿書自救指南"] }
+      { title: "天官賜福", items: ["小説　邦訳版", "アニメ　一期", "ラジオドラマ　一季"] },
+      { title: "魔道祖師", items: ["小説　邦訳版", "アニメ　一期", "ドラマ　陳情令"] },
+      { title: "人渣反派自救系統", items: ["小説　繁体字版", " anime　穿書自救指南"] }
     ]
   },
   {
     name: "Priest",
     works: [
-      { title: "山河令 (天涯客)", items: ["ドラマ ▶本編", "小説 ▶邦訳版"] },
-      { title: "鎮魂", items: ["ドラマ ▶本編", "小説 ▶邦訳版"] }
+      { title: "山河令 (天涯客)", items: ["ドラマ　本編", "小説　邦訳版"] },
+      { title: "鎮魂", items: ["ドラマ　本編", "小説　邦訳版"] }
     ]
   }
 ];
@@ -74,20 +78,94 @@ authors.forEach((author, aIdx) => {
     workDetails.appendChild(workSummary);
 
     work.items.forEach((item, iIdx) => {
-      const label = document.createElement("label");
+      const container = document.createElement("div");
+      container.style.display = "block";
+      container.style.marginLeft = "35px";
+      container.style.marginBottom = "2px";
+      container.style.padding = "8px";
+      container.style.borderBottom = "1px dashed #eee";
+      container.style.cursor = "pointer";
+      container.style.fontSize = "14px";
+      container.style.color = "#555";
+      container.style.display = "flex";
+      container.style.alignItems = "center";
+      container.style.gap = "15px";
+      container.style.overflow = "hidden";
+      
+      const itemSpan = document.createElement("span");
+      itemSpan.textContent = item + " ： ";
+      itemSpan.style.flex = "1 1 auto";
+      itemSpan.style.minWidth = "100px";
+      itemSpan.style.whiteSpace = "nowrap";
+      
+      // 文字の長さに応じてフォントサイズを調整
+      const itemLength = item.length;
+      if (itemLength > 20) {
+        itemSpan.style.fontSize = "11px";
+      } else if (itemLength > 15) {
+        itemSpan.style.fontSize = "12px";
+      } else if (itemLength > 10) {
+        itemSpan.style.fontSize = "13px";
+      } else {
+        itemSpan.style.fontSize = "14px";
+      }
+      
+      container.appendChild(itemSpan);
+      
       const groupName = `radio-${aIdx}-${wIdx}-${iIdx}`;
-      label.appendChild(document.createTextNode(item + " ： "));
-      const finished = createRadio(groupName, author.name, work.title, item, "finished");
-      label.appendChild(finished);
-      label.appendChild(document.createTextNode(" 完走 "));
-      const reading = createRadio(groupName, author.name, work.title, item, "reading");
-      label.appendChild(reading);
-      label.appendChild(document.createTextNode(" 履修中 "));
-      const none = createRadio(groupName, author.name, work.title, item, "none");
+      
+      // 選択肢コンテナ
+      const optionsContainer = document.createElement("div");
+      optionsContainer.style.display = "flex";
+      optionsContainer.style.alignItems = "center";
+      optionsContainer.style.gap = "0px";
+      optionsContainer.style.flexShrink = "0";
+      
+      // 完走
+      const finishedId = `${groupName}-finished`;
+      const finished = createRadio(finishedId, groupName, author.name, work.title, item, "finished");
+      finished.id = finishedId;
+      optionsContainer.appendChild(finished);
+      const finishedLabel = document.createElement("label");
+      finishedLabel.htmlFor = finishedId;
+      finishedLabel.textContent = "完走";
+      finishedLabel.style.display = "inline";
+      finishedLabel.style.margin = "0";
+      finishedLabel.style.cursor = "pointer";
+      finishedLabel.style.minWidth = "40px";
+      optionsContainer.appendChild(finishedLabel);
+      
+      // 履修中
+      const readingId = `${groupName}-reading`;
+      const reading = createRadio(readingId, groupName, author.name, work.title, item, "reading");
+      reading.id = readingId;
+      optionsContainer.appendChild(reading);
+      const readingLabel = document.createElement("label");
+      readingLabel.htmlFor = readingId;
+      readingLabel.textContent = "履修中";
+      readingLabel.style.display = "inline";
+      readingLabel.style.margin = "0";
+      readingLabel.style.cursor = "pointer";
+      readingLabel.style.minWidth = "50px";
+      optionsContainer.appendChild(readingLabel);
+      
+      // 未選択
+      const noneId = `${groupName}-none`;
+      const none = createRadio(noneId, groupName, author.name, work.title, item, "none");
+      none.id = noneId;
       none.checked = true;
-      label.appendChild(none);
-      label.appendChild(document.createTextNode(" 未選択"));
-      workDetails.appendChild(label);
+      optionsContainer.appendChild(none);
+      const noneLabel = document.createElement("label");
+      noneLabel.htmlFor = noneId;
+      noneLabel.textContent = "未選択";
+      noneLabel.style.display = "inline";
+      noneLabel.style.margin = "0";
+      noneLabel.style.cursor = "pointer";
+      noneLabel.style.minWidth = "50px";
+      optionsContainer.appendChild(noneLabel);
+      
+      container.appendChild(optionsContainer);
+      workDetails.appendChild(container);
     });
     authorDetails.appendChild(workDetails);
   });
@@ -104,10 +182,11 @@ document.querySelectorAll('details').forEach(target => {
   });
 });
 
-function createRadio(name, author, work, item, status) {
+function createRadio(id, groupName, author, work, item, status) {
   const radio = document.createElement("input");
   radio.type = "radio";
-  radio.name = name;
+  radio.name = groupName;
+  radio.id = id;
   radio.dataset.author = author;
   radio.dataset.work = work;
   radio.dataset.item = item;
@@ -136,7 +215,7 @@ document.getElementById("generate").addEventListener("click", () => {
     const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked')).filter(input => input.dataset.status !== "none");
     if (allChecked.length === 0) { alert("項目を選択してください"); return; }
 
-    const userName = document.getElementById("userNameInput").value || "匿名の中推し";
+    const userName = document.getElementById("userNameInput").value || "匿名の中華好き";
     const dateObj = new Date();
     const dateStr = `作成日: ${dateObj.getFullYear()}/${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
 
@@ -205,12 +284,12 @@ document.getElementById("generate").addEventListener("click", () => {
         workItems.forEach(input => {
           const bX = xOff + 30; const bY = currentY - 20;
           if (input.dataset.status === "finished") {
-            ctx.fillStyle = "#006400"; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.fill();
+            ctx.fillStyle = "#000000"; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.fill();
             ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bX+5, bY+12); ctx.lineTo(bX+10, bY+18); ctx.lineTo(bX+19, bY+6); ctx.stroke();
-            ctx.fillStyle = "#006400"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
+            ctx.fillStyle = "#000000"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
           } else {
-            ctx.strokeStyle = "#ff8c00"; ctx.lineWidth = 2; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.stroke();
-            ctx.fillStyle = "#ff8c00"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
+            ctx.strokeStyle = "#999999"; ctx.lineWidth = 2; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.stroke();
+            ctx.fillStyle = "#999999"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
           }
           currentY += 40;
         });
@@ -219,20 +298,100 @@ document.getElementById("generate").addEventListener("click", () => {
       currentY = maxYInA + 60;
     });
 
-    ctx.font = "18px serif";
+    // フッター装飾
+    ctx.strokeStyle = "#8b0000";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(40, canvas.height - 60);
+    ctx.lineTo(canvas.width - 40, canvas.height - 60);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    ctx.font = "bold 16px serif";
     ctx.fillStyle = "#8b0000";
-    ctx.textAlign = "right";
-    const footerX = canvas.width - 30;
+    ctx.textAlign = "left";
+    const footerX = 50;
     const footerYStart = canvas.height - 40;
-    ctx.fillText(`作成者: ${userName}`, footerX, footerYStart);
-    ctx.fillText(dateStr, footerX, footerYStart + 25);
+    ctx.fillText(`✦ ${userName}`, footerX, footerYStart);
+    ctx.font = "14px serif";
+    ctx.fillStyle = "#666";
+    ctx.fillText(dateStr, footerX, footerYStart + 22);
+    
+    // URL右端に表示
+    ctx.textAlign = "right";
+    ctx.font = "12px serif";
+    ctx.fillStyle = "#666";
+    ctx.fillText("黒字：履修済", canvas.width - 50, footerYStart);
+    ctx.font = "12px serif";
+    ctx.fillText("灰字：履修中", canvas.width - 50, footerYStart + 18);
     ctx.textAlign = "left"; 
 
     canvasContainer.appendChild(canvas);
     const link = document.createElement("a");
     link.download = "作品リスト.jpg"; link.href = canvas.toDataURL("image/jpeg", 0.8);
-    link.innerHTML = "<br><button style='margin-bottom:20px;'>画像を保存する</button>";
+    link.innerHTML = "<br><button style='padding: 10px 25px; font-size: 16px; margin-bottom: 15px;'>画像を保存する</button>";
     canvasContainer.appendChild(link);
+    
+    // 説明テキスト
+    const instructionText = document.createElement("p");
+    instructionText.textContent = "画像を保存して、XやBlueskyなどに投稿してください";
+    instructionText.style.marginTop = "15px";
+    instructionText.style.marginBottom = "15px";
+    instructionText.style.color = "#ffffff";
+    instructionText.style.backgroundColor = "#8b0000";
+    instructionText.style.fontWeight = "bold";
+    instructionText.style.fontSize = "16px";
+    instructionText.style.padding = "15px 20px";
+    instructionText.style.borderRadius = "8px";
+    instructionText.style.textAlign = "center";
+    canvasContainer.appendChild(instructionText);
+    
+    // ボタンコンテナ
+    const btnContainer = document.createElement("div");
+    btnContainer.style.display = "flex";
+    btnContainer.style.justifyContent = "center";
+    btnContainer.style.gap = "10px";
+    btnContainer.style.marginBottom = "20px";
+    
+    // Xシェアボタン
+    const shareBtn = document.createElement("button");
+    shareBtn.textContent = "𝕏に投稿";
+    shareBtn.style.padding = "10px 20px";
+    shareBtn.style.fontSize = "14px";
+    shareBtn.style.background = "#000";
+    shareBtn.style.color = "white";
+    shareBtn.style.border = "none";
+    shareBtn.style.borderRadius = "50px";
+    shareBtn.style.cursor = "pointer";
+    shareBtn.style.boxShadow = "0 4px 0 #5a0000";
+    shareBtn.style.transition = "0.1s";
+    shareBtn.addEventListener("click", () => {
+      const text = `🏮中華履修チェックリスト🏮\n私は以下の作品を履修済です！\nhttp://china-checklist.vercel.app\n`;
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&hashtags=中華リスト`;
+      window.open(twitterUrl, "_blank", "width=550,height=420");
+    });
+    btnContainer.appendChild(shareBtn);
+    
+    // Blueskyシェアボタン
+    const blueskyBtn = document.createElement("button");
+    blueskyBtn.textContent = "Blueskyに投稿";
+    blueskyBtn.style.padding = "10px 20px";
+    blueskyBtn.style.fontSize = "14px";
+    blueskyBtn.style.background = "#1185fe";
+    blueskyBtn.style.color = "white";
+    blueskyBtn.style.border = "none";
+    blueskyBtn.style.borderRadius = "50px";
+    blueskyBtn.style.cursor = "pointer";
+    blueskyBtn.style.boxShadow = "0 4px 0 #0956cc";
+    blueskyBtn.style.transition = "0.1s";
+    blueskyBtn.addEventListener("click", () => {
+      const text = `🏮中華履修チェックリスト🏮\n私は以下の作品を履修済です！\nhttp://china-checklist.vercel.app\n\n#中華リスト`;
+      const blueskyUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`;
+      window.open(blueskyUrl, "_blank", "width=550,height=420");
+    });
+    btnContainer.appendChild(blueskyBtn);
+    canvasContainer.appendChild(btnContainer);
   } catch (e) { alert("エラーが発生しました: " + e.message); }
 });
 </script>
