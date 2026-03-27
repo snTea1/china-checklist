@@ -6,18 +6,32 @@
 <style>
   body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; padding: 20px; background: #fdfaf5; color: #333; }
   h1 { border-bottom: 2px solid #8b0000; padding-bottom: 10px; color: #8b0000; }
-  details { margin-bottom: 10px; background: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 5px; }
-  summary { cursor: pointer; font-size: 18px; font-weight: bold; padding: 5px; outline: none; list-style: none; }
-  summary::-webkit-details-marker { display: none; }
-  summary::before { content: "▶ "; color: #8b0000; font-size: 14px; }
-  details[open] > summary::before { content: "▼ "; }
   
-  label { display: block; margin-left: 25px; margin-bottom: 8px; padding: 5px; border-bottom: 1px dashed #eee; cursor: pointer; font-size: 14px; }
+  /* リスト全体のコンテナ */
+  #checklist { margin-top: 20px; }
+
+  /* 作者レベル */
+  .author-details { margin-bottom: 15px; border: 2px solid #8b0000; border-radius: 8px; overflow: hidden; background: #fff; }
+  .author-summary { cursor: pointer; font-size: 20px; font-weight: bold; padding: 12px; background: #f0ede9; outline: none; list-style: none; display: flex; align-items: center; }
+  .author-summary::before { content: "👤 "; margin-right: 8px; }
+
+  /* 作品レベル */
+  .work-details { margin: 5px 10px 10px 25px; border: 1px solid #ccc; border-radius: 5px; }
+  .work-summary { cursor: pointer; font-size: 16px; font-weight: bold; padding: 8px; background: #fafafa; outline: none; list-style: none; color: #444; }
+  .work-summary::before { content: "📖 "; margin-right: 8px; font-size: 14px; }
+
+  /* 項目レベル（ラベル） */
+  label { display: block; margin-left: 35px; margin-bottom: 2px; padding: 8px; border-bottom: 1px dashed #eee; cursor: pointer; font-size: 14px; color: #555; }
   label:hover { background: #fff5f5; }
-  .controls { margin-top: 20px; }
-  button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #8b0000; color: white; border: none; border-radius: 5px; }
-  button:hover { background: #a00000; }
-  canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; }
+
+  /* 共通の矢印制御 */
+  details[open] > summary::after { content: " ▼"; font-size: 12px; margin-left: auto; color: #8b0000; }
+  details:not([open]) > summary::after { content: " ▶"; font-size: 12px; margin-left: auto; color: #999; }
+
+  .controls { margin-top: 30px; text-align: center; }
+  button { padding: 12px 30px; font-size: 18px; cursor: pointer; background: #8b0000; color: white; border: none; border-radius: 50px; box-shadow: 0 4px 0 #5a0000; transition: 0.1s; }
+  button:active { transform: translateY(3px); box-shadow: none; }
+  canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; display: block; margin-left: auto; margin-right: auto; }
 </style>
 </head>
 <body>
@@ -26,13 +40,12 @@
 <div id="checklist"></div>
 
 <div class="controls">
-  <button id="generate">画像生成＆保存</button>
+  <button id="generate">画像を生成する</button>
 </div>
 
 <div id="canvasContainer"></div>
 
 <script>
-// データ
 const authors = [
   {
     name: "墨香銅臭",
@@ -53,16 +66,19 @@ const authors = [
 
 const checklistContainer = document.getElementById("checklist");
 
-// リスト生成
 authors.forEach((author, aIdx) => {
   const authorDetails = document.createElement("details");
+  authorDetails.className = "author-details";
   const authorSummary = document.createElement("summary");
+  authorSummary.className = "author-summary";
   authorSummary.textContent = author.name;
   authorDetails.appendChild(authorSummary);
 
   author.works.forEach((work, wIdx) => {
     const workDetails = document.createElement("details");
+    workDetails.className = "work-details";
     const workSummary = document.createElement("summary");
+    workSummary.className = "work-summary";
     workSummary.textContent = work.title;
     workDetails.appendChild(workSummary);
 
@@ -113,7 +129,7 @@ function createRadio(name, author, work, item, status) {
   return radio;
 }
 
-// 角丸を描画する互換性重視の関数
+// 描画用ヘルパー
 function drawRoundedRectCompat(ctx, x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -132,16 +148,9 @@ document.getElementById("generate").addEventListener("click", () => {
   try {
     const canvasContainer = document.getElementById("canvasContainer");
     canvasContainer.innerHTML = "";
+    const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked')).filter(input => input.dataset.status !== "none");
+    if (allChecked.length === 0) { alert("項目を選択してください"); return; }
 
-    const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked'))
-                            .filter(input => input.dataset.status !== "none");
-
-    if (allChecked.length === 0) {
-      alert("項目を1つ以上選択してください。");
-      return;
-    }
-
-    // 高さ計算
     let calcY = 70;
     authors.forEach(author => {
       const authorItems = allChecked.filter(i => i.dataset.author === author.name);
@@ -149,130 +158,77 @@ document.getElementById("generate").addEventListener("click", () => {
       calcY += 60;
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
       const isTwoColumn = targetWorks.length >= 2;
-      let maxYInAuthor = calcY;
+      let maxY = calcY;
       let startY = calcY;
       targetWorks.forEach((work, index) => {
         const workItems = authorItems.filter(i => i.dataset.work === work.title);
         let tempY = calcY;
         if (isTwoColumn) {
           if (index % 2 === 1) { tempY = startY; } 
-          else if (index > 0) { tempY = maxYInAuthor + 30; startY = tempY; }
+          else if (index > 0) { tempY = maxY + 30; startY = tempY; }
         }
         tempY += 40 + (workItems.length * 40);
-        if (tempY > maxYInAuthor) maxYInAuthor = tempY;
-        if (!isTwoColumn) calcY = maxYInAuthor + 20;
+        if (tempY > maxY) maxY = tempY;
+        if (!isTwoColumn) calcY = maxY + 20;
       });
-      calcY = maxYInAuthor + 80;
+      calcY = maxY + 80;
     });
 
     const canvas = document.createElement("canvas");
-    canvas.width = 800;
-    canvas.height = calcY;
+    canvas.width = 800; canvas.height = calcY;
     const ctx = canvas.getContext("2d");
-
-    ctx.fillStyle = "#fffaf0"; 
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#8b0000";
-    ctx.lineWidth = 10;
-    ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
+    ctx.fillStyle = "#fffaf0"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 10; ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
 
     let currentY = 70;
     authors.forEach(author => {
       const authorItems = allChecked.filter(i => i.dataset.author === author.name);
       if (authorItems.length === 0) return;
-
-      // 点線と作者名
-      ctx.font = "bold 32px serif";
-      ctx.fillStyle = "#8b0000";
-      ctx.strokeStyle = "#8b0000";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([10, 5]);
-
-      const authorText = "【 " + author.name + " 】";
-      const textWidth = ctx.measureText(authorText).width;
-      const textX = (canvas.width / 2) - (textWidth / 2);
-      const lineY = currentY - 10;
-
-      ctx.beginPath();
-      ctx.moveTo(40, lineY);
-      ctx.lineTo(textX - 15, lineY);
-      ctx.stroke();
-
-      ctx.fillText(authorText, textX, currentY);
-
-      ctx.beginPath();
-      ctx.moveTo(textX + textWidth + 15, lineY);
-      ctx.lineTo(canvas.width - 40, lineY);
-      ctx.stroke();
-
-      ctx.setLineDash([]);
-      currentY += 60;
+      ctx.font = "bold 32px serif"; ctx.fillStyle = "#8b0000"; ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 2; ctx.setLineDash([10, 5]);
+      const txt = "【 " + author.name + " 】";
+      const tw = ctx.measureText(txt).width;
+      const tx = (canvas.width / 2) - (tw / 2);
+      ctx.beginPath(); ctx.moveTo(40, currentY - 10); ctx.lineTo(tx - 15, currentY - 10); ctx.stroke();
+      ctx.fillText(txt, tx, currentY);
+      ctx.beginPath(); ctx.moveTo(tx + tw + 15, currentY - 10); ctx.lineTo(canvas.width - 40, currentY - 10); ctx.stroke();
+      ctx.setLineDash([]); currentY += 60;
 
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-      const isTwoColumn = targetWorks.length >= 2;
-      let maxYInAuthor = currentY;
-      let startY = currentY;
-
+      const isTwoCol = targetWorks.length >= 2;
+      let maxYInA = currentY; let startY = currentY;
       targetWorks.forEach((work, index) => {
         const workItems = authorItems.filter(i => i.dataset.work === work.title);
-        let xOffset = 60;
-        if (isTwoColumn) {
-          const xIdx = index % 2;
-          xOffset = 60 + (xIdx * 370);
+        let xOff = 60;
+        if (isTwoCol) {
+          const xIdx = index % 2; xOff = 60 + (xIdx * 370);
           if (xIdx === 1) { currentY = startY; } 
-          else if (index > 0) { currentY = maxYInAuthor + 30; startY = currentY; }
+          else if (index > 0) { currentY = maxYInA + 30; startY = currentY; }
         }
-
-        ctx.font = "bold 24px sans-serif";
-        ctx.fillStyle = "#333";
-        ctx.fillText("■ " + work.title, xOffset, currentY);
+        ctx.font = "bold 24px sans-serif"; ctx.fillStyle = "#333"; ctx.fillText("■ " + work.title, xOff, currentY);
         currentY += 40;
-
         workItems.forEach(input => {
-          const boxSize = 24;
-          const boxX = xOffset + 30;
-          const boxY = currentY - 20;
-          const r = 5;
-
+          const bX = xOff + 30; const bY = currentY - 20;
           if (input.dataset.status === "finished") {
-            ctx.fillStyle = "#006400";
-            drawRoundedRectCompat(ctx, boxX, boxY, boxSize, boxSize, r);
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(boxX + 5, boxY + 12);
-            ctx.lineTo(boxX + 10, boxY + 18);
-            ctx.lineTo(boxX + 19, boxY + 6);
-            ctx.stroke();
-            ctx.fillStyle = "#006400";
-            ctx.font = "22px sans-serif";
-            ctx.fillText(input.dataset.item, boxX + 35, currentY);
+            ctx.fillStyle = "#006400"; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.fill();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bX+5, bY+12); ctx.lineTo(bX+10, bY+18); ctx.lineTo(bX+19, bY+6); ctx.stroke();
+            ctx.fillStyle = "#006400"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
           } else {
-            ctx.strokeStyle = "#ff8c00";
-            ctx.lineWidth = 2;
-            drawRoundedRectCompat(ctx, boxX, boxY, boxSize, boxSize, r);
-            ctx.stroke();
-            ctx.fillStyle = "#ff8c00";
-            ctx.font = "22px sans-serif";
-            ctx.fillText(input.dataset.item + " (履修中)", boxX + 35, currentY);
+            ctx.strokeStyle = "#ff8c00"; ctx.lineWidth = 2; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.stroke();
+            ctx.fillStyle = "#ff8c00"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item + " (履修中)", bX + 35, currentY);
           }
           currentY += 40;
         });
-        if (currentY > maxYInAuthor) maxYInAuthor = currentY;
+        if (currentY > maxYInA) maxYInA = currentY;
       });
-      currentY = maxYInAuthor + 60;
+      currentY = maxYInA + 60;
     });
 
     canvasContainer.appendChild(canvas);
     const link = document.createElement("a");
-    link.download = "作品チェックリスト.jpg";
-    link.href = canvas.toDataURL("image/jpeg", 0.8);
-    link.innerHTML = "<br><button style='margin-bottom:20px;'>画像を保存</button>";
+    link.download = "中華作品リスト.jpg"; link.href = canvas.toDataURL("image/jpeg", 0.8);
+    link.innerHTML = "<br><button style='margin-bottom:20px;'>画像を保存する</button>";
     canvasContainer.appendChild(link);
-  } catch (e) {
-    alert("エラーが発生しました: " + e.message);
-  }
+  } catch (e) { alert(e.message); }
 });
 </script>
 </body>
