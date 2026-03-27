@@ -52,6 +52,7 @@ const authors = [
 
 const checklistContainer = document.getElementById("checklist");
 
+// リストの動的生成
 authors.forEach((author, aIdx) => {
   const authorDetails = document.createElement("details");
   const authorSummary = document.createElement("summary");
@@ -86,107 +87,5 @@ authors.forEach((author, aIdx) => {
       workDetails.appendChild(label);
     });
     authorDetails.appendChild(workDetails);
-
-    // 作品レベルのアコーディオン制御
-    workDetails.addEventListener('toggle', e => {
-      if (workDetails.open) {
-        authorDetails.querySelectorAll(':scope > details').forEach(other => {
-          if (other !== workDetails) other.open = false;
-        });
-      }
-    });
   });
-  checklistContainer.appendChild(authorDetails);
-});
-
-function createRadio(name, author, work, item, status) {
-  const radio = document.createElement("input");
-  radio.type = "radio";
-  radio.name = name;
-  radio.dataset.author = author;
-  radio.dataset.work = work;
-  radio.dataset.item = item;
-  radio.dataset.status = status;
-  return radio;
-}
-
-document.getElementById("generate").addEventListener("click", () => {
-  const canvasContainer = document.getElementById("canvasContainer");
-  canvasContainer.innerHTML = "";
-
-  const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked'))
-                          .filter(input => input.dataset.status !== "none");
-
-  if (allChecked.length === 0) {
-    alert("項目を1つ以上選択してください。");
-    return;
-  }
-
-  let totalHeight = 100;
-  authors.forEach(author => {
-    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
-    if (authorItems.length === 0) return;
-    totalHeight += 50;
-    author.works.forEach(work => {
-      const workItems = authorItems.filter(i => i.dataset.work === work.title);
-      if (workItems.length === 0) return;
-      totalHeight += 40 + (workItems.length * 35) + 20;
-    });
-  });
-
-  const canvas = document.createElement("canvas");
-  canvas.width = 800;
-  canvas.height = totalHeight;
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#fffaf0"; 
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "#8b0000";
-  ctx.lineWidth = 10;
-  ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
-
-  let currentY = 60;
-  authors.forEach(author => {
-    const authorItems = allChecked.filter(i => i.dataset.author === author.name);
-    if (authorItems.length === 0) return;
-
-    ctx.font = "bold 32px serif";
-    ctx.fillStyle = "#8b0000";
-    ctx.fillText("【 " + author.name + " 】", 40, currentY);
-    currentY += 50;
-
-    author.works.forEach(work => {
-      const workItems = authorItems.filter(i => i.dataset.work === work.title);
-      if (workItems.length === 0) return;
-
-      ctx.font = "bold 24px sans-serif";
-      ctx.fillStyle = "#333";
-      ctx.fillText("■ " + work.title, 60, currentY);
-      currentY += 40;
-
-      workItems.forEach(input => {
-        ctx.font = "22px sans-serif";
-        if (input.dataset.status === "finished") {
-          ctx.fillStyle = "#006400";
-          ctx.fillText("☑︎ " + input.dataset.item, 90, currentY);
-        } else {
-          ctx.fillStyle = "#ff8c00";
-          ctx.fillText("・ " + input.dataset.item + " (履修中)", 90, currentY);
-        }
-        currentY += 35;
-      });
-      currentY += 20;
-    });
-  });
-
-  canvasContainer.appendChild(canvas);
-  
-  const link = document.createElement("a");
-  link.download = "中華作品チェックリスト.jpg";
-  link.href = canvas.toDataURL("image/jpeg", 0.8);
-  link.innerHTML = "<br><button>画像をダウンロード保存</button>";
-  canvasContainer.appendChild(link);
-});
-</script>
-</body>
-</html>
+  checklistContainer.appendChild(authorDetails
