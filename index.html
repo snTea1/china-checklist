@@ -7,7 +7,8 @@
   body { font-family: sans-serif; padding: 20px; background: #f8f8f8; }
   details { margin-bottom: 10px; }
   summary { cursor: pointer; font-size: 20px; font-weight: bold; }
-  label { display: block; margin-left: 20px; }
+  label { display: block; margin-left: 20px; margin-bottom: 4px; }
+  .status { margin-left: 10px; }
   button { margin-top: 15px; padding: 10px 15px; font-size: 16px; }
   canvas { border:1px solid #ccc; margin-top: 20px; max-width: 100%; }
 </style>
@@ -20,48 +21,19 @@
 <div id="canvasContainer"></div>
 
 <script>
-// データ
+// データ例
 const authors = [
   {
     name: "墨香銅臭",
     works: [
-      {
-        title: "天官賜福",
-        items: [
-          "小説 ▶邦訳版", "小説 ▶繁体字版", "小説 ▶簡体字版", "小説 ▶完全版（晋江）",
-          "アニメ ▶一期", "アニメ ▶二期", "アニメ ▶短編1", "アニメ ▶短編2", "アニメ ▶短編3",
-          "ラジオドラマ ▶一季", "ラジオドラマ ▶二季", "ラジオドラマ ▶三季",
-          "漫画 ▶邦訳版", "漫画 ▶繁体字版"
-        ]
-      },
-      {
-        title: "魔道祖師",
-        items: [
-          "小説 ▶邦訳版", "小説 ▶繁体字版", "小説 ▶晋江",
-          "アニメ ▶一期", "アニメ ▶二期", "アニメ ▶三期",
-          "ドラマ（陳情令） ▶本編", "ドラマ（陳情令） ▶生魂", "ドラマ（陳情令） ▶乱魄",
-          "ラジオドラマ ▶本国版", "ラジオドラマ ▶日本版",
-          "舞台 ▶邂逅編", "舞台 ▶湖洄編", "コミック"
-        ]
-      }
+      { title: "天官賜福", items: ["小説 ▶邦訳版", "アニメ ▶一期", "ラジオドラマ ▶一季"] },
+      { title: "魔道祖師", items: ["小説 ▶邦訳版", "アニメ ▶一期", "ドラマ ▶本編"] }
     ]
   },
   {
     name: "Priest",
     works: [
-      {
-        title: "七爷",
-        items: ["小説 ▶晋江"]
-      }
-    ]
-  },
-  {
-    name: "不明",
-    works: [
-      {
-        title: "人渣反派自救系統",
-        items: ["小説 ▶繁体字版", "小説 ▶邦訳版", "小説 ▶晋江", "アニメ ▶一期", "アニメ ▶二期"]
-      }
+      { title: "七爷", items: ["小説 ▶晋江"] }
     ]
   }
 ];
@@ -70,7 +42,6 @@ const authors = [
 const checklistContainer = document.getElementById("checklist");
 authors.forEach(author => {
   const authorDetails = document.createElement("details");
-  authorDetails.open = true;
   const authorSummary = document.createElement("summary");
   authorSummary.textContent = author.name;
   authorDetails.appendChild(authorSummary);
@@ -83,13 +54,26 @@ authors.forEach(author => {
 
     work.items.forEach(item => {
       const label = document.createElement("label");
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.dataset.author = author.name;
-      checkbox.dataset.work = work.title;
-      checkbox.dataset.item = item;
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(" " + item));
+      label.textContent = item;
+
+      const finished = document.createElement("input");
+      finished.type = "checkbox";
+      finished.dataset.author = author.name;
+      finished.dataset.work = work.title;
+      finished.dataset.item = item;
+      finished.dataset.status = "finished";
+      label.appendChild(finished);
+      label.appendChild(document.createTextNode(" 読み終えた"));
+
+      const reading = document.createElement("input");
+      reading.type = "checkbox";
+      reading.dataset.author = author.name;
+      reading.dataset.work = work.title;
+      reading.dataset.item = item;
+      reading.dataset.status = "reading";
+      label.appendChild(reading);
+      label.appendChild(document.createTextNode(" 読んでる途中"));
+
       workDetails.appendChild(label);
     });
 
@@ -99,12 +83,11 @@ authors.forEach(author => {
   checklistContainer.appendChild(authorDetails);
 });
 
-// アコーディオン対応（階層両方）
+// アコーディオン機能
 function makeAccordion(selector) {
   document.querySelectorAll(selector).forEach(detail => {
     detail.addEventListener('toggle', e => {
       if (detail.open) {
-        // 同階層の他を閉じる
         const parent = detail.parentNode;
         parent.querySelectorAll(':scope > details').forEach(other => {
           if (other !== detail) other.open = false;
@@ -113,35 +96,29 @@ function makeAccordion(selector) {
     });
   });
 }
-
-// 作者レベル
-makeAccordion('#checklist > details');
-// 作品レベル
-makeAccordion('#checklist details details');
+makeAccordion('#checklist > details'); // 作者レベル
+makeAccordion('#checklist details details'); // 作品レベル
 
 // Canvas生成
 document.getElementById("generate").addEventListener("click", () => {
   const canvasContainer = document.getElementById("canvasContainer");
   canvasContainer.innerHTML = "";
 
-  // 高さ計算
   let totalHeight = 40;
   authors.forEach(author => {
     let authorHasSelection = false;
     author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
       if (selectedItems.length > 0) authorHasSelection = true;
     });
     if (!authorHasSelection) return;
-    totalHeight += 40; // 作者
+    totalHeight += 40;
     author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
       if (selectedItems.length === 0) return;
-      totalHeight += 30; // 作品タイトル
-      totalHeight += selectedItems.length * 28;
-      totalHeight += 20;
+      totalHeight += 30 + selectedItems.length * 28 + 20;
     });
-    totalHeight += 30; // 作者間
+    totalHeight += 30;
   });
 
   const canvas = document.createElement("canvas");
@@ -151,12 +128,11 @@ document.getElementById("generate").addEventListener("click", () => {
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 描画
   let y = 40;
   authors.forEach(author => {
     let authorHasSelection = false;
     author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
       if (selectedItems.length > 0) authorHasSelection = true;
     });
     if (!authorHasSelection) return;
@@ -167,7 +143,7 @@ document.getElementById("generate").addEventListener("click", () => {
     y += 40;
 
     author.works.forEach(work => {
-      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`)).map(el => el.dataset.item);
+      const selectedItems = Array.from(document.querySelectorAll(`input[data-author="${author.name}"][data-work="${work.title}"]:checked`));
       if (selectedItems.length === 0) return;
 
       ctx.font = "bold 24px sans-serif";
@@ -175,9 +151,14 @@ document.getElementById("generate").addEventListener("click", () => {
       ctx.fillText(work.title, 70, y);
       y += 30;
 
-      selectedItems.forEach(item => {
-        ctx.font = "20px sans-serif";
-        ctx.fillText("☑ " + item, 90, y);
+      selectedItems.forEach(input => {
+        if (input.dataset.status === "finished") {
+          ctx.fillStyle = "green";
+          ctx.fillText("☑ " + input.dataset.item, 90, y);
+        } else if (input.dataset.status === "reading") {
+          ctx.fillStyle = "orange";
+          ctx.fillText("⬤ " + input.dataset.item, 90, y);
+        }
         y += 28;
       });
 
