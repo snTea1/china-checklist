@@ -7,10 +7,14 @@
   body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; padding: 20px; background: #fdfaf5; color: #333; }
   h1 { border-bottom: 2px solid #8b0000; padding-bottom: 10px; color: #8b0000; }
   details { margin-bottom: 10px; background: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 5px; }
-  summary { cursor: pointer; font-size: 18px; font-weight: bold; padding: 5px; outline: none; }
-  label { display: block; margin-left: 25px; margin-bottom: 8px; padding: 5px; border-bottom: 1px dashed #eee; cursor: pointer; }
+  summary { cursor: pointer; font-size: 18px; font-weight: bold; padding: 5px; outline: none; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▶ "; color: #8b0000; font-size: 14px; }
+  details[open] > summary::before { content: "▼ "; }
+  
+  label { display: block; margin-left: 25px; margin-bottom: 8px; padding: 5px; border-bottom: 1px dashed #eee; cursor: pointer; font-size: 14px; }
   label:hover { background: #fff5f5; }
-  .controls { margin-top: 20px; display: flex; gap: 10px; }
+  .controls { margin-top: 20px; }
   button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #8b0000; color: white; border: none; border-radius: 5px; }
   button:hover { background: #a00000; }
   canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; }
@@ -57,34 +61,40 @@ authors.forEach((author, aIdx) => {
   author.works.forEach((work, wIdx) => {
     const workDetails = document.createElement("details");
     const workSummary = document.createElement("summary");
-    workSummary.textContent = "└ " + work.title;
+    workSummary.textContent = work.title;
     workDetails.appendChild(workSummary);
 
     work.items.forEach((item, iIdx) => {
       const label = document.createElement("label");
-      const groupName = `radio-${aIdx}-${wIdx}-${iIdx}`; // ユニークなグループ名
+      const groupName = `radio-${aIdx}-${wIdx}-${iIdx}`;
 
       label.appendChild(document.createTextNode(item + " ： "));
 
-      // 完走
       const finished = createRadio(groupName, author.name, work.title, item, "finished");
       label.appendChild(finished);
       label.appendChild(document.createTextNode(" 完走 "));
 
-      // 履修中
       const reading = createRadio(groupName, author.name, work.title, item, "reading");
       label.appendChild(reading);
       label.appendChild(document.createTextNode(" 履修中 "));
 
-      // 未選択 (リセット用)
       const none = createRadio(groupName, author.name, work.title, item, "none");
-      none.checked = true; // デフォルト
+      none.checked = true;
       label.appendChild(none);
       label.appendChild(document.createTextNode(" 未選択"));
 
       workDetails.appendChild(label);
     });
     authorDetails.appendChild(workDetails);
+
+    // 作品レベルのアコーディオン制御
+    workDetails.addEventListener('toggle', e => {
+      if (workDetails.open) {
+        authorDetails.querySelectorAll(':scope > details').forEach(other => {
+          if (other !== workDetails) other.open = false;
+        });
+      }
+    });
   });
   checklistContainer.appendChild(authorDetails);
 });
@@ -100,12 +110,10 @@ function createRadio(name, author, work, item, status) {
   return radio;
 }
 
-// Canvas生成
 document.getElementById("generate").addEventListener("click", () => {
   const canvasContainer = document.getElementById("canvasContainer");
   canvasContainer.innerHTML = "";
 
-  // 選択された（完走・履修中のみ）を取得
   const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked'))
                           .filter(input => input.dataset.status !== "none");
 
@@ -114,29 +122,23 @@ document.getElementById("generate").addEventListener("click", () => {
     return;
   }
 
-  // 高さの簡易計算
-  let y = 60;
-  const canvasWidth = 800;
-  
-  // 計算用に一旦高さを出す
   let totalHeight = 100;
   authors.forEach(author => {
     const authorItems = allChecked.filter(i => i.dataset.author === author.name);
     if (authorItems.length === 0) return;
-    totalHeight += 50; // 作者名
+    totalHeight += 50;
     author.works.forEach(work => {
       const workItems = authorItems.filter(i => i.dataset.work === work.title);
       if (workItems.length === 0) return;
-      totalHeight += 40 + (workItems.length * 30) + 20; // タイトル + 項目 + 余白
+      totalHeight += 40 + (workItems.length * 35) + 20;
     });
   });
 
   const canvas = document.createElement("canvas");
-  canvas.width = canvasWidth;
+  canvas.width = 800;
   canvas.height = totalHeight;
   const ctx = canvas.getContext("2d");
 
-  // 背景
   ctx.fillStyle = "#fffaf0"; 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = "#8b0000";
@@ -148,7 +150,6 @@ document.getElementById("generate").addEventListener("click", () => {
     const authorItems = allChecked.filter(i => i.dataset.author === author.name);
     if (authorItems.length === 0) return;
 
-    // 作者名
     ctx.font = "bold 32px serif";
     ctx.fillStyle = "#8b0000";
     ctx.fillText("【 " + author.name + " 】", 40, currentY);
@@ -158,21 +159,19 @@ document.getElementById("generate").addEventListener("click", () => {
       const workItems = authorItems.filter(i => i.dataset.work === work.title);
       if (workItems.length === 0) return;
 
-      // 作品名
       ctx.font = "bold 24px sans-serif";
       ctx.fillStyle = "#333";
       ctx.fillText("■ " + work.title, 60, currentY);
       currentY += 40;
 
-      // 項目
       workItems.forEach(input => {
         ctx.font = "22px sans-serif";
         if (input.dataset.status === "finished") {
           ctx.fillStyle = "#006400";
-          ctx.fillText("☑ " + input.dataset.item, 90, currentY);
+          ctx.fillText("☑︎ " + input.dataset.item, 90, currentY);
         } else {
           ctx.fillStyle = "#ff8c00";
-          ctx.fillText("≫ " + input.dataset.item + " (履修中)", 90, currentY);
+          ctx.fillText("・ " + input.dataset.item + " (履修中)", 90, currentY);
         }
         currentY += 35;
       });
@@ -182,7 +181,6 @@ document.getElementById("generate").addEventListener("click", () => {
 
   canvasContainer.appendChild(canvas);
   
-  // 保存リンク
   const link = document.createElement("a");
   link.download = "中華作品チェックリスト.jpg";
   link.href = canvas.toDataURL("image/jpeg", 0.8);
