@@ -429,9 +429,12 @@ authors.forEach((author, aIdx) => {
       
       const itemSpan = document.createElement("span");
       itemSpan.textContent = item + " ： ";
-      itemSpan.style.flex = "1 1 auto";
+      itemSpan.style.flex = "0 0 auto";
       itemSpan.style.minWidth = isMobile ? "50px" : "100px";
+      itemSpan.style.maxWidth = isMobile ? "44vw" : "none";
       itemSpan.style.whiteSpace = "nowrap";
+      itemSpan.style.overflow = "hidden";
+      itemSpan.style.textOverflow = "ellipsis";
       
       // 文字の長さに応じてフォントサイズを調整
       const itemLength = item.length;
@@ -465,6 +468,7 @@ authors.forEach((author, aIdx) => {
       optionsContainer.style.alignItems = "center";
       optionsContainer.style.gap = "0px";
       optionsContainer.style.flexShrink = "0";
+      optionsContainer.style.marginLeft = isMobile ? "2px" : "8px";
       
       // 完走
       const finishedId = `${groupName}-finished`;
@@ -563,9 +567,12 @@ function addCustomItem() {
 
   const itemSpan = document.createElement("span");
   itemSpan.textContent = `${item} ： `;
-  itemSpan.style.flex = "1 1 auto";
+  itemSpan.style.flex = "0 0 auto";
   itemSpan.style.minWidth = isMobile ? "50px" : "auto";
+  itemSpan.style.maxWidth = isMobile ? "44vw" : "none";
   itemSpan.style.whiteSpace = "nowrap";
+  itemSpan.style.overflow = "hidden";
+  itemSpan.style.textOverflow = "ellipsis";
   container.appendChild(itemSpan);
 
   const noteInput = document.createElement("input");
@@ -580,7 +587,8 @@ function addCustomItem() {
   const optionsContainer = document.createElement("div");
   optionsContainer.style.display = "flex";
   optionsContainer.style.alignItems = "center";
-  optionsContainer.style.gap = "6px";
+  optionsContainer.style.gap = "0px";
+  optionsContainer.style.marginLeft = isMobile ? "2px" : "8px";
 
   const finished = createRadio(`${groupName}-finished`, groupName, author, work, item, "finished");
   const finishedLabel = document.createElement("label");
@@ -674,7 +682,7 @@ document.getElementById("generate").addEventListener("click", () => {
     const customAuthorMap = {};
     allChecked.forEach(radio => {
       if (!authors.some(a => a.name === radio.dataset.author)) {
-        const auth = radio.dataset.author || "自分追加";
+        const auth = radio.dataset.author || "これもだよ";
         const wk = radio.dataset.work || "カスタム";
         if (!customAuthorMap[auth]) customAuthorMap[auth] = {};
         if (!customAuthorMap[auth][wk]) customAuthorMap[auth][wk] = [];
