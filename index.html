@@ -54,6 +54,8 @@
 <div id="canvasContainer"></div>
 
 <script>
+const isMobile = window.innerWidth <= 600;
+
 const authors = [
     {
       "name": "墨香銅臭",
@@ -421,13 +423,13 @@ authors.forEach((author, aIdx) => {
       container.style.color = "#555";
       container.style.display = "flex";
       container.style.alignItems = "center";
-      container.style.gap = "15px";
+      container.style.gap = isMobile ? "6px" : "15px";
       container.style.overflow = "hidden";
       
       const itemSpan = document.createElement("span");
       itemSpan.textContent = item + " ： ";
-      itemSpan.style.flex = "1 1 auto";
-      itemSpan.style.minWidth = "100px";
+      itemSpan.style.flex = isMobile ? "1 1 auto" : "1 1 auto";
+      itemSpan.style.minWidth = isMobile ? "80px" : "100px";
       itemSpan.style.whiteSpace = "nowrap";
       
       // 文字の長さに応じてフォントサイズを調整
@@ -449,11 +451,11 @@ authors.forEach((author, aIdx) => {
       const noteInput = document.createElement("input");
       noteInput.type = "text";
       noteInput.id = `note-${groupName}`;
-      noteInput.placeholder = "進捗メモ（例: 邦訳2巻まで）";
-      noteInput.style.marginLeft = "8px";
-      noteInput.style.padding = "2px 6px";
-      noteInput.style.fontSize = "12px";
-      noteInput.style.width = "140px";
+      noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
+      noteInput.style.marginLeft = isMobile ? "0" : "8px";
+      noteInput.style.padding = "2px 4px";
+      noteInput.style.fontSize = isMobile ? "11px" : "12px";
+      noteInput.style.width = isMobile ? "50px" : "140px";
       container.appendChild(noteInput);
       
       // 選択肢コンテナ
@@ -549,24 +551,25 @@ function addCustomItem() {
   const container = document.createElement("div");
   container.style.display = "flex";
   container.style.alignItems = "center";
-  container.style.gap = "15px";
+  container.style.gap = isMobile ? "6px" : "15px";
   container.style.margin = "5px 0";
   container.style.padding = "8px";
   container.style.borderBottom = "1px dashed #eee";
 
   const itemSpan = document.createElement("span");
   itemSpan.textContent = `${item} ： `;
-  itemSpan.style.flex = "1 1 auto";
+  itemSpan.style.flex = isMobile ? "1 1 auto" : "1 1 auto";
+  itemSpan.style.minWidth = isMobile ? "80px" : "auto";
   itemSpan.style.whiteSpace = "nowrap";
   container.appendChild(itemSpan);
 
   const noteInput = document.createElement("input");
   noteInput.type = "text";
   noteInput.id = `note-${groupName}`;
-  noteInput.placeholder = "進捗メモ（例: 邦訳2巻まで）";
-  noteInput.style.padding = "2px 6px";
-  noteInput.style.fontSize = "12px";
-  noteInput.style.width = "160px";
+  noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
+  noteInput.style.padding = "2px 4px";
+  noteInput.style.fontSize = isMobile ? "11px" : "12px";
+  noteInput.style.width = isMobile ? "50px" : "160px";
   container.appendChild(noteInput);
 
   const optionsContainer = document.createElement("div");
