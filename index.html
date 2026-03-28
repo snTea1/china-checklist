@@ -34,11 +34,12 @@
     .controls input[type="text"], #customWorkInput, #customItemInput {
       width: 100% !important;
       max-width: 100% !important;
+      font-size: 16px !important;
       margin-right: 0 !important;
       margin-bottom: 8px;
       box-sizing: border-box;
     }
-    #userNameInput { width: 100% !important; max-width: 100% !important; }
+    #userNameInput { width: 100% !important; max-width: 100% !important; font-size: 16px !important; }
     #addCustomItem { width: 100%; padding: 10px 12px !important; font-size: 13px !important; }
     .author-summary, .work-summary { font-size: 15px; }
   }
@@ -472,7 +473,7 @@ authors.forEach((author, aIdx) => {
       noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
       noteInput.style.marginLeft = isMobile ? "0" : "auto";
       noteInput.style.padding = "2px 4px";
-      noteInput.style.fontSize = isMobile ? "11px" : "12px";
+      noteInput.style.fontSize = isMobile ? "16px" : "12px";
       noteInput.style.width = isMobile ? "35px" : "140px";
       container.appendChild(noteInput);
       
@@ -611,7 +612,7 @@ function addCustomItem() {
   noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
   noteInput.style.marginLeft = isMobile ? "0" : "auto";
   noteInput.style.padding = "2px 4px";
-  noteInput.style.fontSize = isMobile ? "11px" : "12px";
+  noteInput.style.fontSize = isMobile ? "16px" : "12px";
   noteInput.style.width = isMobile ? "35px" : "160px";
   container.appendChild(noteInput);
 
