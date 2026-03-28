@@ -18,10 +18,17 @@
   details[open] > summary::after { content: " ▼"; font-size: 12px; margin-left: auto; color: #8b0000; }
   details:not([open]) > summary::after { content: " ▶"; font-size: 12px; margin-left: auto; color: #999; }
   .controls { margin-top: 30px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-  #userNameInput { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 300px; text-align: center; }
+  .controls input[type="text"] { width: 100%; max-width: 300px; box-sizing: border-box; }
+  #userNameInput { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; width: 100%; max-width: 300px; text-align: center; }
   button { padding: 12px 30px; font-size: 18px; cursor: pointer; background: #8b0000; color: white; border: none; border-radius: 50px; box-shadow: 0 4px 0 #5a0000; transition: 0.1s; }
   button:active { transform: translateY(3px); box-shadow: none; }
   canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; display: block; margin-left: auto; margin-right: auto; }
+
+  @media (max-width: 768px) {
+    .controls { padding: 0 10px; }
+    .controls input[type="text"], #customWorkInput, #customItemInput { max-width: 100%; }
+    .author-summary, .work-summary { font-size: 16px; }
+  }
 </style>
 </head>
 <body>
@@ -34,6 +41,12 @@
 
 <div id="checklist"></div>
 
+<div class="controls" style="margin-top: 20px; text-align: left; display: block; padding-left: 20px; justify-content: flex-start;">
+  <input type="text" id="customWorkInput" placeholder="作品名" maxlength="30" style="width: 200px; margin-right: 8px;">
+  <input type="text" id="customItemInput" placeholder="メディアの種類" maxlength="40" style="width: 260px; margin-right: 8px;">
+  <button id="addCustomItem" style="padding: 8px 14px; font-size: 14px;">リストにない項目を追加</button>
+</div>
+
 <div class="controls" style="margin-top: 20px;">
   <button id="generate">画像を生成する</button>
 </div>
@@ -42,22 +55,341 @@
 
 <script>
 const authors = [
-  {
-    name: "墨香銅臭",
-    works: [
-      { title: "天官賜福", items: ["小説　邦訳版", "アニメ　一期", "ラジオドラマ　一季"] },
-      { title: "魔道祖師", items: ["小説　邦訳版", "アニメ　一期", "ドラマ　陳情令"] },
-      { title: "人渣反派自救系統", items: ["小説　繁体字版", " anime　穿書自救指南"] }
-    ]
-  },
-  {
-    name: "Priest",
-    works: [
-      { title: "山河令 (天涯客)", items: ["ドラマ　本編", "小説　邦訳版"] },
-      { title: "鎮魂", items: ["ドラマ　本編", "小説　邦訳版"] }
-    ]
-  }
-];
+    {
+      "name": "墨香銅臭",
+      "works": [
+        {
+          "title": "天官賜福",
+          "items": [
+            "小説　邦訳版",
+            "小説　繁体字版",
+            "小説　簡体字版",
+            "小説　その他言語",
+            "小説　晋江",
+            "アニメ",
+            "アニメ　短編",
+            "ラジドラ",
+            "漫画"
+          ]
+        },
+        {
+          "title": "魔道祖師",
+          "items": [
+            "小説　邦訳版",
+            "小説　繁体字版",
+            "小説　その他言語",
+            "小説　晋江",
+            "アニメ",
+            "ドラマ　陳情令",
+            "ドラマ　生魂",
+            "ドラマ　乱魄",
+            "ラジドラ",
+            "舞台　邂逅編",
+            "舞台　湖洄編",
+            "漫画"
+          ]
+        },
+        {
+          "title": "人渣反派自救系統",
+          "items": [
+            "小説　繁体字版",
+            "小説　簡体字版　蒼穹山記",
+            "小説　その他言語",
+            "小説　邦訳版　単行本",
+            "小説　邦訳版　連載",
+            "小説　晋江",
+            "アニメ　穿書自救指南"
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Priest",
+      "works": [
+        {
+          "title": "七爺",
+          "items": ["小説　晋江"]
+        },
+        {
+          "title": "天涯客",
+          "items": [
+            "小説　繁体字版",
+            "小説　その他の言語",
+            "小説　晋江",
+            "ドラマ　山河令",
+            "ラジドラ"
+          ]
+        },
+        {
+          "title": "杀破狼",
+          "items": [
+            "小説　繁体字版",
+            "小説　簡体字版",
+            "小説　その他言語",
+            "小説　晋江",
+            "ラジドラ"
+          ]
+        },
+        {
+          "title": "大哥",
+          "items": [
+            "小説　簡体字版",
+            "小説　晋江",
+            "ドラマ　僕らも知らない僕ら",
+            "ラジドラ"
+          ]
+        },
+        {
+          "title": "残次品",
+          "items": [
+            "小説　簡体字版",
+            "小説　晋江",
+            "小説　邦訳版　連載",
+            "アニメ　放逐星空",
+            "ラジドラ",
+            "漫画"
+          ]
+        },
+        {
+          "title": "黙読",
+          "items": [
+            "小説　簡体字版",
+            "小説　その他言語",
+            "小説　晋江",
+            "小説　邦訳版",
+            "小説　連載版",
+            "ドラマ　光淵",
+            "ラジドラ"
+          ]
+        },
+        {
+          "title": "山河表里",
+          "items": [
+            "小説　簡体字版",
+            "小説　晋江"
+          ]
+        },
+        {
+          "title": "六爻",
+          "items": [
+            "小説　簡体字版",
+            "小説　その他の言語",
+            "小説　晋江",
+            "ラジドラ"
+          ]
+        },
+        {
+          "title": "鎮魂",
+          "items": [
+            "小説　簡体字版",
+            "小説　繁体字版",
+            "小説　晋江",
+            "小説　邦訳版",
+            "ドラマ"
+          ]
+        },
+        {
+          "title": "烈火澆愁",
+          "items": [
+            "小説　簡体字版",
+            "小説　その他の言語",
+            "小説　晋江",
+            "ラジドラ",
+            "コミック"
+          ]
+        },
+        {
+          "title": "有匪",
+          "items": [
+            "小説　簡体字版",
+            "小説　その他の言語",
+            "小説　晋江",
+            "ラジドラ",
+            "ドラマ　有翡"
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "梦溪石",
+      "works": [
+        {
+          "title": "千秋",
+          "items": [
+            "小説　簡体字版",
+            "小説　繁体字版",
+            "小説　邦訳版",
+            "アニメ　山河剣心"
+          ]
+        },
+        {
+          "title": "成化十四年",
+          "items": [
+            "小説　晋江",
+            "ドラマ　本編"
+          ]
+        },
+        {
+          "title": "无双",
+          "items": [
+            "ドラマ　本編",
+            "小説　邦訳版"
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "唐酒卿",
+      "works": [
+        {
+          "title": "将進酒",
+          "items": [
+            "小説　晋江",
+            "小説　邦訳版",
+            "ラジドラ"
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "肉包不吃肉",
+      "works": [
+        {
+          "title": "二哈和他的白猫師尊",
+          "items": [
+            "小説　簡体字版　海棠微雨共帰途",
+            "小説　繁体字版",
+            "小説　その他言語",
+            "小説　晋江",
+            "小説　邦訳版",
+            "ラジドラ　本国版",
+            "ラジドラ　日本版"
+          ]
+        },
+        {
+          "title": "病案本",
+          "items": [
+            "小説　簡体字版",
+            "小説　繁体字版",
+            "小説　晋江",
+            "小説　邦訳版　単行本",
+            "小説　邦訳版　連載"
+          ]
+        },
+        {
+          "title": "余汚",
+          "items": [
+            "小説　その他言語",
+            "小説　晋江",
+            "ラジドラ"
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "その他",
+      "works": [
+        {
+          "title": "男狐聊斎",
+          "items": ["ドラマ　本編", "小説　邦訳版"]
+        },
+        {
+          "title": "鬓边不是海棠红",
+          "items": [
+            "小説　簡体字版",
+            "小説　晋江",
+            "ドラマ　君、花海棠の紅にあらず"
+          ]
+        },
+        {
+          "title": "死亡万華鏡",
+          "items": [
+            "小説　他の言語",
+            "小説　邦訳版",
+            "ドラマ　致命遊戯"
+          ]
+        },
+        {
+          "title": "你丫上癮了？",
+          "items": [
+            "小説　繁体字版　上癮",
+            "小説　邦訳版",
+            "ドラマ　ハイロイン"
+          ]
+        },
+        {
+          "title": "天宝伏妖录",
+          "items": [
+            "小説　簡体字版",
+            "小説　晋江",
+            "小説　他の言語",
+            "アニメ",
+            "ラジドラ"
+          ]
+        },
+        {
+          "title": "蓮花楼",
+          "items": [
+            "小説　簡体字　吉祥紋蓮花樓",
+            "小説　繁体字版",
+            "小説　邦訳版",
+            "ドラマ"
+          ]
+        },
+        {
+          "title": "逐玉",
+          "items": [
+            "小説　簡体字版",
+            "小説　繁体字版",
+            "小説　晋江",
+            "ドラマ"
+          ]
+        },
+        {
+          "title": "别养黑莲花皇帝当替身",
+          "items": ["小説　晋江"]
+        },
+        {
+          "title": "魔尊他念念不忘",
+          "items": [
+            "小説　簡体字版",
+            "小説　晋江"
+          ]
+        },
+        {
+          "title": "虐文求生遊戯",
+          "items": ["小説　晋江"]
+        },
+        {
+          "title": "双A引力法則",
+          "items": ["小説　晋江"]
+        },
+        {
+          "title": "長安的荔枝",
+          "items": [
+            "小説　簡体字版",
+            "小説　繁体字版",
+            "小説　邦訳版",
+            "映画　長安のライチ"
+          ]
+        },
+        {
+          "title": "羅小黒戦記",
+          "items": [
+            "映画1",
+            "映画2",
+            "連続アニメ",
+            "漫画"
+          ]
+        }
+      ]
+    }
+  ];
 
 const checklistContainer = document.getElementById("checklist");
 
@@ -113,6 +445,16 @@ authors.forEach((author, aIdx) => {
       container.appendChild(itemSpan);
       
       const groupName = `radio-${aIdx}-${wIdx}-${iIdx}`;
+
+      const noteInput = document.createElement("input");
+      noteInput.type = "text";
+      noteInput.id = `note-${groupName}`;
+      noteInput.placeholder = "進捗メモ（例: 邦訳2巻まで）";
+      noteInput.style.marginLeft = "8px";
+      noteInput.style.padding = "2px 6px";
+      noteInput.style.fontSize = "12px";
+      noteInput.style.width = "140px";
+      container.appendChild(noteInput);
       
       // 選択肢コンテナ
       const optionsContainer = document.createElement("div");
@@ -194,6 +536,85 @@ function createRadio(id, groupName, author, work, item, status) {
   return radio;
 }
 
+function addCustomItem() {
+  const author = "他にもあるよ";
+  const work = document.getElementById("customWorkInput").value.trim() || "カスタム";
+  const item = document.getElementById("customItemInput").value.trim();
+  if (!item) {
+    alert("項目名を入力してください");
+    return;
+  }
+
+  const groupName = `custom-${Date.now()}`;
+  const container = document.createElement("div");
+  container.style.display = "flex";
+  container.style.alignItems = "center";
+  container.style.gap = "15px";
+  container.style.margin = "5px 0";
+  container.style.padding = "8px";
+  container.style.borderBottom = "1px dashed #eee";
+
+  const itemSpan = document.createElement("span");
+  itemSpan.textContent = `${item} ： `;
+  itemSpan.style.flex = "1 1 auto";
+  itemSpan.style.whiteSpace = "nowrap";
+  container.appendChild(itemSpan);
+
+  const noteInput = document.createElement("input");
+  noteInput.type = "text";
+  noteInput.id = `note-${groupName}`;
+  noteInput.placeholder = "進捗メモ（例: 邦訳2巻まで）";
+  noteInput.style.padding = "2px 6px";
+  noteInput.style.fontSize = "12px";
+  noteInput.style.width = "160px";
+  container.appendChild(noteInput);
+
+  const optionsContainer = document.createElement("div");
+  optionsContainer.style.display = "flex";
+  optionsContainer.style.alignItems = "center";
+  optionsContainer.style.gap = "6px";
+
+  const finished = createRadio(`${groupName}-finished`, groupName, author, work, item, "finished");
+  const finishedLabel = document.createElement("label");
+  finishedLabel.htmlFor = `${groupName}-finished`;
+  finishedLabel.textContent = "完走";
+  finishedLabel.style.cursor = "pointer";
+  optionsContainer.appendChild(finished);
+  optionsContainer.appendChild(finishedLabel);
+
+  const reading = createRadio(`${groupName}-reading`, groupName, author, work, item, "reading");
+  const readingLabel = document.createElement("label");
+  readingLabel.htmlFor = `${groupName}-reading`;
+  readingLabel.textContent = "履修中";
+  readingLabel.style.cursor = "pointer";
+  optionsContainer.appendChild(reading);
+  optionsContainer.appendChild(readingLabel);
+
+  const none = createRadio(`${groupName}-none`, groupName, author, work, item, "none");
+  none.checked = true;
+  const noneLabel = document.createElement("label");
+  noneLabel.htmlFor = `${groupName}-none`;
+  noneLabel.textContent = "未選択";
+  noneLabel.style.cursor = "pointer";
+  optionsContainer.appendChild(none);
+  optionsContainer.appendChild(noneLabel);
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "削除";
+  deleteBtn.style.padding = "4px 8px";
+  deleteBtn.style.fontSize = "12px";
+  deleteBtn.style.cursor = "pointer";
+  deleteBtn.addEventListener("click", () => container.remove());
+  optionsContainer.appendChild(deleteBtn);
+
+  container.appendChild(optionsContainer);
+  document.getElementById("checklist").appendChild(container);
+
+  document.getElementById("customItemInput").value = "";
+}
+
+document.getElementById("addCustomItem").addEventListener("click", addCustomItem);
+
 function drawRoundedRectCompat(ctx, x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -208,6 +629,18 @@ function drawRoundedRectCompat(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
+function drawTextFit(ctx, text, x, y, maxWidth) {
+  let fontSize = 22;
+  const baseFont = ctx.font || '22px sans-serif';
+  const fontFamily = baseFont.split(' ').slice(1).join(' ') || 'sans-serif';
+  while (fontSize > 10) {
+    ctx.font = `${fontSize}px ${fontFamily}`;
+    if (ctx.measureText(text).width <= maxWidth) break;
+    fontSize -= 1;
+  }
+  ctx.fillText(text, x, y);
+}
+
 document.getElementById("generate").addEventListener("click", () => {
   try {
     const canvasContainer = document.getElementById("canvasContainer");
@@ -215,18 +648,40 @@ document.getElementById("generate").addEventListener("click", () => {
     const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked')).filter(input => input.dataset.status !== "none");
     if (allChecked.length === 0) { alert("項目を選択してください"); return; }
 
+    allChecked.forEach(radio => {
+      const noteField = document.getElementById(`note-${radio.name}`);
+      radio.dataset.note = noteField ? noteField.value.trim() : "";
+    });
+
     const userName = document.getElementById("userNameInput").value || "匿名の中華好き";
     const dateObj = new Date();
     const dateStr = `作成日: ${dateObj.getFullYear()}/${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
 
+    const customAuthorMap = {};
+    allChecked.forEach(radio => {
+      if (!authors.some(a => a.name === radio.dataset.author)) {
+        const auth = radio.dataset.author || "自分追加";
+        const wk = radio.dataset.work || "カスタム";
+        if (!customAuthorMap[auth]) customAuthorMap[auth] = {};
+        if (!customAuthorMap[auth][wk]) customAuthorMap[auth][wk] = [];
+        if (!customAuthorMap[auth][wk].includes(radio.dataset.item)) customAuthorMap[auth][wk].push(radio.dataset.item);
+      }
+    });
+
+    const allAuthors = authors.map(a => ({ name: a.name, works: a.works }));
+    Object.entries(customAuthorMap).forEach(([auth, works]) => {
+      const arr = Object.entries(works).map(([w, items]) => ({ title: w, items }));
+      allAuthors.push({ name: auth, works: arr });
+    });
+
     // 高さ計算
     let calcY = 70;
-    authors.forEach(author => {
+    allAuthors.forEach(author => {
       const authorItems = allChecked.filter(i => i.dataset.author === author.name);
       if (authorItems.length === 0) return;
       calcY += 70;
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-      const isTwoColumn = targetWorks.length >= 2;
+      const isTwoColumn = targetWorks.length >= 2 && window.innerWidth >= 760;
       let maxY = calcY;
       let startY = calcY;
       targetWorks.forEach((work, index) => {
@@ -246,9 +701,11 @@ document.getElementById("generate").addEventListener("click", () => {
     // フッターの高さを足す
     const totalHeight = calcY + 60;
 
-    // ここでキャンバスを作成
+    // ここでキャンバスを作成 (レスポンシブ)
     const canvas = document.createElement("canvas");
-    canvas.width = 800; 
+    const maxCanvasWidth = 800;
+    const viewportWidth = Math.min(window.innerWidth - 40, maxCanvasWidth);
+    canvas.width = Math.max(480, viewportWidth);
     canvas.height = totalHeight;
     const ctx = canvas.getContext("2d");
 
@@ -256,7 +713,7 @@ document.getElementById("generate").addEventListener("click", () => {
     ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 10; ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
 
     let currentY = 70;
-    authors.forEach(author => {
+    allAuthors.forEach(author => {
       const authorItems = allChecked.filter(i => i.dataset.author === author.name);
       if (authorItems.length === 0) return;
       ctx.font = "bold 32px serif"; ctx.fillStyle = "#8b0000"; ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 2; ctx.setLineDash([10, 5]);
@@ -269,7 +726,7 @@ document.getElementById("generate").addEventListener("click", () => {
       ctx.setLineDash([]); currentY += 60;
 
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-      const isTwoCol = targetWorks.length >= 2;
+      const isTwoCol = targetWorks.length >= 2 && canvas.width >= 760;
       let maxYInA = currentY; let startY = currentY;
       targetWorks.forEach((work, index) => {
         const workItems = authorItems.filter(i => i.dataset.work === work.title);
@@ -283,13 +740,16 @@ document.getElementById("generate").addEventListener("click", () => {
         currentY += 40;
         workItems.forEach(input => {
           const bX = xOff + 30; const bY = currentY - 20;
+          const noteAppend = input.dataset.note ? ` (${input.dataset.note})` : "";
           if (input.dataset.status === "finished") {
             ctx.fillStyle = "#000000"; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.fill();
             ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bX+5, bY+12); ctx.lineTo(bX+10, bY+18); ctx.lineTo(bX+19, bY+6); ctx.stroke();
-            ctx.fillStyle = "#000000"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
+            ctx.fillStyle = "#000000";
+            drawTextFit(ctx, input.dataset.item + noteAppend, bX + 35, currentY, 700);
           } else {
             ctx.strokeStyle = "#999999"; ctx.lineWidth = 2; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.stroke();
-            ctx.fillStyle = "#999999"; ctx.font = "22px sans-serif"; ctx.fillText(input.dataset.item, bX + 35, currentY);
+            ctx.fillStyle = "#999999";
+            drawTextFit(ctx, input.dataset.item + noteAppend, bX + 35, currentY, 700);
           }
           currentY += 40;
         });
@@ -321,9 +781,9 @@ document.getElementById("generate").addEventListener("click", () => {
     // URL右端に表示
     ctx.textAlign = "right";
     ctx.font = "12px serif";
-    ctx.fillStyle = "#666";
+    ctx.fillStyle = "#000";
     ctx.fillText("黒字：履修済", canvas.width - 50, footerYStart);
-    ctx.font = "12px serif";
+    ctx.fillStyle = "#666";
     ctx.fillText("灰字：履修中", canvas.width - 50, footerYStart + 18);
     ctx.textAlign = "left"; 
 
