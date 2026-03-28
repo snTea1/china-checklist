@@ -2,16 +2,15 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>中華履修リスト</title>
 <style>
-  body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; padding: 14px; background: #fdfaf5; color: #333; }
+  body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; padding: 20px; background: #fdfaf5; color: #333; }
   h1 { border-bottom: 2px solid #8b0000; padding-bottom: 10px; color: #8b0000; }
   #checklist { margin-top: 20px; }
   .author-details { margin-bottom: 15px; border: 2px solid #8b0000; border-radius: 8px; overflow: hidden; background: #fff; }
   .author-summary { cursor: pointer; font-size: 19px; font-weight: bold; padding: 12px; background: #f0ede9; outline: none; list-style: none; display: flex; align-items: center; }
   .author-summary::before { content: "👤 "; margin-right: 8px; }
-  .work-details { margin: 5px 8px 8px 8px; border: 1px solid #ccc; border-radius: 5px; }
+  .work-details { margin: 5px 10px 10px 25px; border: 1px solid #ccc; border-radius: 5px; }
   .work-summary { cursor: pointer; font-size: 16px; font-weight: bold; padding: 8px; background: #fafafa; outline: none; list-style: none; color: #444; display: flex; align-items: center; }
   .work-summary::before { content: "✴︎ "; margin-right: 8px; font-size: 18px; color: #8b0000; }
   label { display: block; margin-left: 35px; margin-bottom: 2px; padding: 8px; border-bottom: 1px dashed #eee; cursor: pointer; font-size: 14px; color: #555; }
@@ -26,30 +25,15 @@
   canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; display: block; margin-left: auto; margin-right: auto; }
 
   @media (max-width: 768px) {
-    body { padding: 8px; }
     .controls { padding: 0 10px; }
     .controls input[type="text"], #customWorkInput, #customItemInput { max-width: 100%; }
-    .author-summary, .work-summary { font-size: 14px; }
-    label { font-size: 12px; margin-left: 10px; }
-    .work-details { margin: 3px 3px 6px 4px; }
-    #customWorkInput, #customItemInput { width: 100% !important; margin-right: 0 !important; margin-bottom: 8px; }
-    #addCustomItem { font-size: 13px; }
-  }
-
-  @media (max-width: 600px) {
-    body { padding: 6px; }
-    h1 { font-size: 18px; }
-    .author-summary { font-size: 13px; padding: 8px; }
-    .work-summary { font-size: 12px; padding: 6px 6px 6px 4px; }
-    .work-details { margin: 2px 1px 6px 2px; }
-    label { font-size: 11px; margin-left: 5px; }
-    button { padding: 8px 12px; font-size: 13px; }
+    .author-summary, .work-summary { font-size: 16px; }
   }
 </style>
 </head>
 <body>
 
-<h1>🏮中華履修チェック🏮</h1>
+<h1>🏮中華履修チェックリスト🏮</h1>
 
 <div class="controls" style="margin-top: 10px; margin-bottom: 20px; text-align: left; display: block; padding-left: 20px; justify-content: flex-start;">
   <input type="text" id="userNameInput" placeholder="お名前・HNなどを入力" maxlength="20" style="width: 250px; text-align: left;">
@@ -70,9 +54,6 @@
 <div id="canvasContainer"></div>
 
 <script>
-const isMobile = window.innerWidth <= 600;
-const isTablet = window.innerWidth <= 768;
-
 const authors = [
     {
       "name": "墨香銅臭",
@@ -430,36 +411,35 @@ authors.forEach((author, aIdx) => {
 
     work.items.forEach((item, iIdx) => {
       const container = document.createElement("div");
-      container.style.display = "flex";
-      container.style.flexWrap = "wrap";
-      container.style.alignItems = "center";
-      container.style.gap = isMobile ? "6px" : "15px";
-      container.style.margin = "5px 0";
-      container.style.padding = isMobile ? "6px 4px" : "8px";
+      container.style.display = "block";
+      container.style.marginLeft = "35px";
+      container.style.marginBottom = "2px";
+      container.style.padding = "8px";
       container.style.borderBottom = "1px dashed #eee";
       container.style.cursor = "pointer";
       container.style.fontSize = "14px";
       container.style.color = "#555";
-      container.style.overflow = "visible";
+      container.style.display = "flex";
+      container.style.alignItems = "center";
+      container.style.gap = "15px";
+      container.style.overflow = "hidden";
       
       const itemSpan = document.createElement("span");
-      const displayItem = isMobile ? item.replace(/\u3000+/g, " ") : item;
-      itemSpan.textContent = displayItem + " : ";
-      itemSpan.style.flex = isMobile ? "1 1 100%" : "1 1 auto";
-      itemSpan.style.minWidth = isMobile ? "60px" : "100px";
-      itemSpan.style.whiteSpace = isMobile ? "normal" : "nowrap";
-      itemSpan.style.wordBreak = "break-word";
-      itemSpan.style.lineHeight = "1.35";
-      itemSpan.style.fontSize = isMobile ? "11px" : "14px";
+      itemSpan.textContent = item + " ： ";
+      itemSpan.style.flex = "1 1 auto";
+      itemSpan.style.minWidth = "100px";
+      itemSpan.style.whiteSpace = "nowrap";
       
       // 文字の長さに応じてフォントサイズを調整
       const itemLength = item.length;
       if (itemLength > 20) {
-        itemSpan.style.fontSize = isMobile ? "9px" : "11px";
+        itemSpan.style.fontSize = "11px";
       } else if (itemLength > 15) {
-        itemSpan.style.fontSize = isMobile ? "10px" : "12px";
+        itemSpan.style.fontSize = "12px";
       } else if (itemLength > 10) {
-        itemSpan.style.fontSize = isMobile ? "10px" : "13px";
+        itemSpan.style.fontSize = "13px";
+      } else {
+        itemSpan.style.fontSize = "14px";
       }
       
       container.appendChild(itemSpan);
@@ -469,23 +449,19 @@ authors.forEach((author, aIdx) => {
       const noteInput = document.createElement("input");
       noteInput.type = "text";
       noteInput.id = `note-${groupName}`;
-      noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
-      noteInput.style.marginLeft = "0";
-      noteInput.style.padding = "2px 4px";
-      noteInput.style.fontSize = "11px";
-      noteInput.style.width = isMobile ? "52px" : "140px";
-      noteInput.style.minWidth = isMobile ? "52px" : "60px";
-      noteInput.style.flex = isMobile ? "0 0 52px" : "0 0 auto";
+      noteInput.placeholder = "進捗メモ（例: 邦訳2巻まで）";
+      noteInput.style.marginLeft = "8px";
+      noteInput.style.padding = "2px 6px";
+      noteInput.style.fontSize = "12px";
+      noteInput.style.width = "140px";
       container.appendChild(noteInput);
       
       // 選択肢コンテナ
       const optionsContainer = document.createElement("div");
       optionsContainer.style.display = "flex";
       optionsContainer.style.alignItems = "center";
-      optionsContainer.style.gap = isMobile ? "4px" : "0px";
+      optionsContainer.style.gap = "0px";
       optionsContainer.style.flexShrink = "0";
-      optionsContainer.style.flexWrap = isMobile ? "wrap" : "nowrap";
-      optionsContainer.style.flex = isMobile ? "1 1 auto" : "0 0 auto";
       
       // 完走
       const finishedId = `${groupName}-finished`;
@@ -494,14 +470,11 @@ authors.forEach((author, aIdx) => {
       optionsContainer.appendChild(finished);
       const finishedLabel = document.createElement("label");
       finishedLabel.htmlFor = finishedId;
-      finishedLabel.textContent = isMobile ? "〇" : "完走";
+      finishedLabel.textContent = "完走";
       finishedLabel.style.display = "inline";
       finishedLabel.style.margin = "0";
-      finishedLabel.style.padding = "0";
-      finishedLabel.style.borderBottom = "none";
       finishedLabel.style.cursor = "pointer";
-      finishedLabel.style.minWidth = isMobile ? "20px" : "40px";
-      finishedLabel.style.fontSize = isMobile ? "10px" : "14px";
+      finishedLabel.style.minWidth = "40px";
       optionsContainer.appendChild(finishedLabel);
       
       // 履修中
@@ -511,14 +484,11 @@ authors.forEach((author, aIdx) => {
       optionsContainer.appendChild(reading);
       const readingLabel = document.createElement("label");
       readingLabel.htmlFor = readingId;
-      readingLabel.textContent = isMobile ? "◐" : "履修中";
+      readingLabel.textContent = "履修中";
       readingLabel.style.display = "inline";
       readingLabel.style.margin = "0";
-      readingLabel.style.padding = "0";
-      readingLabel.style.borderBottom = "none";
       readingLabel.style.cursor = "pointer";
-      readingLabel.style.minWidth = isMobile ? "20px" : "50px";
-      readingLabel.style.fontSize = isMobile ? "10px" : "14px";
+      readingLabel.style.minWidth = "50px";
       optionsContainer.appendChild(readingLabel);
       
       // 未選択
@@ -529,14 +499,11 @@ authors.forEach((author, aIdx) => {
       optionsContainer.appendChild(none);
       const noneLabel = document.createElement("label");
       noneLabel.htmlFor = noneId;
-      noneLabel.textContent = isMobile ? "×" : "未選択";
+      noneLabel.textContent = "未選択";
       noneLabel.style.display = "inline";
       noneLabel.style.margin = "0";
-      noneLabel.style.padding = "0";
-      noneLabel.style.borderBottom = "none";
       noneLabel.style.cursor = "pointer";
-      noneLabel.style.minWidth = isMobile ? "20px" : "50px";
-      noneLabel.style.fontSize = isMobile ? "10px" : "14px";
+      noneLabel.style.minWidth = "50px";
       optionsContainer.appendChild(noneLabel);
       
       container.appendChild(optionsContainer);
@@ -581,62 +548,45 @@ function addCustomItem() {
   const groupName = `custom-${Date.now()}`;
   const container = document.createElement("div");
   container.style.display = "flex";
-  container.style.flexWrap = "wrap";
   container.style.alignItems = "center";
-  container.style.gap = isMobile ? "6px" : "15px";
+  container.style.gap = "15px";
   container.style.margin = "5px 0";
-  container.style.padding = isMobile ? "6px 4px" : "8px";
+  container.style.padding = "8px";
   container.style.borderBottom = "1px dashed #eee";
 
   const itemSpan = document.createElement("span");
-  const displayItem = isMobile ? item.replace(/\u3000+/g, " ") : item;
-  itemSpan.textContent = `${displayItem} : `;
-  itemSpan.style.flex = isMobile ? "1 1 100%" : "1 1 auto";
-  itemSpan.style.whiteSpace = isMobile ? "normal" : "nowrap";
-  itemSpan.style.wordBreak = "break-word";
-  itemSpan.style.lineHeight = "1.35";
-  itemSpan.style.fontSize = isMobile ? "11px" : "14px";
+  itemSpan.textContent = `${item} ： `;
+  itemSpan.style.flex = "1 1 auto";
+  itemSpan.style.whiteSpace = "nowrap";
   container.appendChild(itemSpan);
 
   const noteInput = document.createElement("input");
   noteInput.type = "text";
   noteInput.id = `note-${groupName}`;
-  noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
-  noteInput.style.padding = "2px 4px";
-  noteInput.style.fontSize = "11px";
-  noteInput.style.width = isMobile ? "52px" : "160px";
-  noteInput.style.minWidth = isMobile ? "52px" : "60px";
-  noteInput.style.flex = isMobile ? "0 0 52px" : "0 0 auto";
+  noteInput.placeholder = "進捗メモ（例: 邦訳2巻まで）";
+  noteInput.style.padding = "2px 6px";
+  noteInput.style.fontSize = "12px";
+  noteInput.style.width = "160px";
   container.appendChild(noteInput);
 
   const optionsContainer = document.createElement("div");
   optionsContainer.style.display = "flex";
   optionsContainer.style.alignItems = "center";
-  optionsContainer.style.gap = isMobile ? "4px" : "6px";
-  optionsContainer.style.flexWrap = isMobile ? "wrap" : "nowrap";
-  optionsContainer.style.flex = isMobile ? "1 1 auto" : "0 0 auto";
+  optionsContainer.style.gap = "6px";
 
   const finished = createRadio(`${groupName}-finished`, groupName, author, work, item, "finished");
   const finishedLabel = document.createElement("label");
   finishedLabel.htmlFor = `${groupName}-finished`;
-  finishedLabel.textContent = isMobile ? "〇" : "完走";
-  finishedLabel.style.padding = "0";
-  finishedLabel.style.borderBottom = "none";
+  finishedLabel.textContent = "完走";
   finishedLabel.style.cursor = "pointer";
-  finishedLabel.style.fontSize = isMobile ? "10px" : "14px";
-  finishedLabel.style.minWidth = isMobile ? "20px" : "40px";
   optionsContainer.appendChild(finished);
   optionsContainer.appendChild(finishedLabel);
 
   const reading = createRadio(`${groupName}-reading`, groupName, author, work, item, "reading");
   const readingLabel = document.createElement("label");
   readingLabel.htmlFor = `${groupName}-reading`;
-  readingLabel.textContent = isMobile ? "◐" : "履修中";
-  readingLabel.style.padding = "0";
-  readingLabel.style.borderBottom = "none";
+  readingLabel.textContent = "履修中";
   readingLabel.style.cursor = "pointer";
-  readingLabel.style.fontSize = isMobile ? "10px" : "14px";
-  readingLabel.style.minWidth = isMobile ? "20px" : "50px";
   optionsContainer.appendChild(reading);
   optionsContainer.appendChild(readingLabel);
 
@@ -644,19 +594,15 @@ function addCustomItem() {
   none.checked = true;
   const noneLabel = document.createElement("label");
   noneLabel.htmlFor = `${groupName}-none`;
-  noneLabel.textContent = isMobile ? "×" : "未選択";
-  noneLabel.style.padding = "0";
-  noneLabel.style.borderBottom = "none";
+  noneLabel.textContent = "未選択";
   noneLabel.style.cursor = "pointer";
-  noneLabel.style.fontSize = isMobile ? "10px" : "14px";
-  noneLabel.style.minWidth = isMobile ? "20px" : "50px";
   optionsContainer.appendChild(none);
   optionsContainer.appendChild(noneLabel);
 
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "削除";
   deleteBtn.style.padding = "4px 8px";
-  deleteBtn.style.fontSize = "11px";
+  deleteBtn.style.fontSize = "12px";
   deleteBtn.style.cursor = "pointer";
   deleteBtn.addEventListener("click", () => container.remove());
   optionsContainer.appendChild(deleteBtn);
