@@ -618,7 +618,7 @@ function addCustomItem() {
   const optionsContainer = document.createElement("div");
   optionsContainer.style.display = "flex";
   optionsContainer.style.alignItems = "center";
-  optionsContainer.style.gap = "0px";
+  optionsContainer.style.gap = isMobile ? "2px" : "4px";
   optionsContainer.style.marginLeft = isMobile ? "0" : "8px";
   optionsContainer.style.width = isMobile ? "100%" : "auto";
 
@@ -626,6 +626,10 @@ function addCustomItem() {
   const finishedLabel = document.createElement("label");
   finishedLabel.htmlFor = `${groupName}-finished`;
   finishedLabel.textContent = "完走";
+  finishedLabel.style.display = "inline";
+  finishedLabel.style.margin = "0";
+  finishedLabel.style.padding = "0";
+  finishedLabel.style.borderBottom = "none";
   finishedLabel.style.cursor = "pointer";
   finishedLabel.style.minWidth = isMobile ? "20px" : "40px";
   finishedLabel.style.fontSize = isMobile ? "10px" : "14px";
@@ -636,6 +640,10 @@ function addCustomItem() {
   const readingLabel = document.createElement("label");
   readingLabel.htmlFor = `${groupName}-reading`;
   readingLabel.textContent = "履修中";
+  readingLabel.style.display = "inline";
+  readingLabel.style.margin = "0";
+  readingLabel.style.padding = "0";
+  readingLabel.style.borderBottom = "none";
   readingLabel.style.cursor = "pointer";
   readingLabel.style.minWidth = isMobile ? "20px" : "50px";
   readingLabel.style.fontSize = isMobile ? "10px" : "14px";
@@ -647,6 +655,10 @@ function addCustomItem() {
   const noneLabel = document.createElement("label");
   noneLabel.htmlFor = `${groupName}-none`;
   noneLabel.textContent = "未選択";
+  noneLabel.style.display = "inline";
+  noneLabel.style.margin = "0";
+  noneLabel.style.padding = "0";
+  noneLabel.style.borderBottom = "none";
   noneLabel.style.cursor = "pointer";
   noneLabel.style.minWidth = isMobile ? "20px" : "50px";
   noneLabel.style.fontSize = isMobile ? "10px" : "14px";
