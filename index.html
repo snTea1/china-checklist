@@ -26,9 +26,21 @@
   canvas { border: 1px solid #ccc; margin-top: 20px; max-width: 100%; background: #fff; display: block; margin-left: auto; margin-right: auto; }
 
   @media (max-width: 768px) {
-    .controls { padding: 0 10px; }
-    .controls input[type="text"], #customWorkInput, #customItemInput { max-width: 100%; }
-    .author-summary, .work-summary { font-size: 16px; }
+    body { padding: 10px; }
+    h1 { font-size: 24px; }
+    .author-details { margin-bottom: 10px; }
+    .work-details { margin: 5px 6px 8px 10px; }
+    .controls { padding: 0 4px; }
+    .controls input[type="text"], #customWorkInput, #customItemInput {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-right: 0 !important;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+    #userNameInput { width: 100% !important; max-width: 100% !important; }
+    #addCustomItem { width: 100%; padding: 10px 12px !important; font-size: 13px !important; }
+    .author-summary, .work-summary { font-size: 15px; }
   }
 </style>
 </head>
@@ -415,7 +427,7 @@ authors.forEach((author, aIdx) => {
     work.items.forEach((item, iIdx) => {
       const container = document.createElement("div");
       container.style.display = "block";
-      container.style.marginLeft = "35px";
+      container.style.marginLeft = isMobile ? "8px" : "35px";
       container.style.marginBottom = "2px";
       container.style.padding = "8px";
       container.style.borderBottom = "1px dashed #eee";
@@ -432,7 +444,7 @@ authors.forEach((author, aIdx) => {
       itemSpan.textContent = item + " ： ";
       itemSpan.style.flex = "0 0 auto";
       itemSpan.style.minWidth = isMobile ? "50px" : "100px";
-      itemSpan.style.maxWidth = isMobile ? "44vw" : "none";
+      itemSpan.style.maxWidth = isMobile ? "38vw" : "none";
       itemSpan.style.whiteSpace = "nowrap";
       itemSpan.style.overflow = "hidden";
       itemSpan.style.textOverflow = "ellipsis";
@@ -570,7 +582,7 @@ function addCustomItem() {
   itemSpan.textContent = `${item} ： `;
   itemSpan.style.flex = "0 0 auto";
   itemSpan.style.minWidth = isMobile ? "50px" : "auto";
-  itemSpan.style.maxWidth = isMobile ? "44vw" : "none";
+  itemSpan.style.maxWidth = isMobile ? "38vw" : "none";
   itemSpan.style.whiteSpace = "nowrap";
   itemSpan.style.overflow = "hidden";
   itemSpan.style.textOverflow = "ellipsis";
