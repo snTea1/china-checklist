@@ -725,6 +725,7 @@ function dataUrlToFile(dataUrl, fileName) {
 
 document.getElementById("generate").addEventListener("click", () => {
   try {
+    const outputCanvasWidth = 800;
     const canvasContainer = document.getElementById("canvasContainer");
     canvasContainer.innerHTML = "";
     const allChecked = Array.from(document.querySelectorAll('input[type="radio"]:checked')).filter(input => input.dataset.status !== "none");
@@ -769,7 +770,7 @@ document.getElementById("generate").addEventListener("click", () => {
       if (authorItems.length === 0) return;
       calcY += authorTitleHeight;
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-      const isTwoColumn = targetWorks.length >= 2 && window.innerWidth >= 640;
+      const isTwoColumn = targetWorks.length >= 2 && outputCanvasWidth >= 640;
       let maxY = calcY;
       let startY = calcY;
       targetWorks.forEach((work, index) => {
@@ -791,9 +792,7 @@ document.getElementById("generate").addEventListener("click", () => {
 
     // ここでキャンバスを作成 (レスポンシブ)
     const canvas = document.createElement("canvas");
-    const maxCanvasWidth = 800;
-    const viewportWidth = Math.min(window.innerWidth - 40, maxCanvasWidth);
-    canvas.width = Math.max(480, viewportWidth);
+    canvas.width = outputCanvasWidth;
     canvas.height = totalHeight;
     const ctx = canvas.getContext("2d");
 
@@ -814,7 +813,7 @@ document.getElementById("generate").addEventListener("click", () => {
       ctx.setLineDash([]); currentY += 48;
 
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-      const isTwoCol = targetWorks.length >= 2 && canvas.width >= 640;
+      const isTwoCol = targetWorks.length >= 2 && outputCanvasWidth >= 640;
       const columnGap = 20;
       const columnWidth = isTwoCol ? Math.floor((canvas.width - 80 - columnGap) / 2) : canvas.width - 120;
       let maxYInA = currentY; let startY = currentY;
