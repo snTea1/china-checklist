@@ -571,6 +571,20 @@ function addCustomItem() {
   }
 
   const groupName = `custom-${Date.now()}`;
+  const customBlock = document.createElement("div");
+  customBlock.style.margin = "8px 0";
+  customBlock.style.border = "1px solid #ccc";
+  customBlock.style.borderRadius = "5px";
+  customBlock.style.background = "#fff";
+
+  const customWorkTitle = document.createElement("div");
+  customWorkTitle.textContent = work;
+  customWorkTitle.style.padding = "8px 10px 4px";
+  customWorkTitle.style.fontWeight = "bold";
+  customWorkTitle.style.fontSize = isMobile ? "14px" : "16px";
+  customWorkTitle.style.color = "#444";
+  customBlock.appendChild(customWorkTitle);
+
   const container = document.createElement("div");
   container.style.display = "flex";
   container.style.alignItems = "center";
@@ -644,12 +658,14 @@ function addCustomItem() {
   deleteBtn.style.padding = "4px 8px";
   deleteBtn.style.fontSize = "12px";
   deleteBtn.style.cursor = "pointer";
-  deleteBtn.addEventListener("click", () => container.remove());
+  deleteBtn.addEventListener("click", () => customBlock.remove());
   optionsContainer.appendChild(deleteBtn);
 
   container.appendChild(optionsContainer);
-  document.getElementById("checklist").appendChild(container);
+  customBlock.appendChild(container);
+  document.getElementById("checklist").appendChild(customBlock);
 
+  document.getElementById("customWorkInput").value = "";
   document.getElementById("customItemInput").value = "";
 }
 
@@ -700,7 +716,7 @@ document.getElementById("generate").addEventListener("click", () => {
     const customAuthorMap = {};
     allChecked.forEach(radio => {
       if (!authors.some(a => a.name === radio.dataset.author)) {
-        const auth = radio.dataset.author || "これもだよ";
+        const auth = radio.dataset.author || "作者";
         const wk = radio.dataset.work || "カスタム";
         if (!customAuthorMap[auth]) customAuthorMap[auth] = {};
         if (!customAuthorMap[auth][wk]) customAuthorMap[auth][wk] = [];
