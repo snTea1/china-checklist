@@ -443,7 +443,7 @@ authors.forEach((author, aIdx) => {
       
       const itemSpan = document.createElement("span");
       itemSpan.textContent = item + " ： ";
-      itemSpan.style.flex = "0 0 auto";
+      itemSpan.style.flex = isMobile ? "0 0 auto" : "1 1 auto";
       itemSpan.style.minWidth = isMobile ? "50px" : "100px";
       itemSpan.style.maxWidth = isMobile ? "38vw" : "none";
       itemSpan.style.whiteSpace = "nowrap";
@@ -470,7 +470,7 @@ authors.forEach((author, aIdx) => {
       noteInput.type = "text";
       noteInput.id = `note-${groupName}`;
       noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
-      noteInput.style.marginLeft = isMobile ? "0" : "8px";
+      noteInput.style.marginLeft = isMobile ? "0" : "auto";
       noteInput.style.padding = "2px 4px";
       noteInput.style.fontSize = isMobile ? "11px" : "12px";
       noteInput.style.width = isMobile ? "35px" : "140px";
@@ -583,7 +583,7 @@ function addCustomItem() {
 
   const itemSpan = document.createElement("span");
   itemSpan.textContent = `${item} ： `;
-  itemSpan.style.flex = "0 0 auto";
+  itemSpan.style.flex = isMobile ? "0 0 auto" : "1 1 auto";
   itemSpan.style.minWidth = isMobile ? "50px" : "auto";
   itemSpan.style.maxWidth = isMobile ? "38vw" : "none";
   itemSpan.style.whiteSpace = "nowrap";
@@ -595,6 +595,7 @@ function addCustomItem() {
   noteInput.type = "text";
   noteInput.id = `note-${groupName}`;
   noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
+  noteInput.style.marginLeft = isMobile ? "0" : "auto";
   noteInput.style.padding = "2px 4px";
   noteInput.style.fontSize = isMobile ? "11px" : "12px";
   noteInput.style.width = isMobile ? "35px" : "160px";
