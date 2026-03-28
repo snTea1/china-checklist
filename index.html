@@ -436,9 +436,10 @@ authors.forEach((author, aIdx) => {
       container.style.color = "#555";
       container.style.display = "flex";
       container.style.alignItems = "center";
+      container.style.flexWrap = isMobile ? "wrap" : "nowrap";
       container.style.justifyContent = "flex-start";
       container.style.gap = isMobile ? "4px" : "15px";
-      container.style.overflow = "hidden";
+      container.style.overflow = "visible";
       
       const itemSpan = document.createElement("span");
       itemSpan.textContent = item + " ： ";
@@ -481,7 +482,8 @@ authors.forEach((author, aIdx) => {
       optionsContainer.style.alignItems = "center";
       optionsContainer.style.gap = "0px";
       optionsContainer.style.flexShrink = "0";
-      optionsContainer.style.marginLeft = isMobile ? "2px" : "8px";
+      optionsContainer.style.marginLeft = isMobile ? "0" : "8px";
+      optionsContainer.style.width = isMobile ? "100%" : "auto";
       
       // 完走
       const finishedId = `${groupName}-finished`;
@@ -572,6 +574,7 @@ function addCustomItem() {
   const container = document.createElement("div");
   container.style.display = "flex";
   container.style.alignItems = "center";
+  container.style.flexWrap = isMobile ? "wrap" : "nowrap";
   container.style.justifyContent = "flex-start";
   container.style.gap = isMobile ? "4px" : "15px";
   container.style.margin = "5px 0";
@@ -601,7 +604,8 @@ function addCustomItem() {
   optionsContainer.style.display = "flex";
   optionsContainer.style.alignItems = "center";
   optionsContainer.style.gap = "0px";
-  optionsContainer.style.marginLeft = isMobile ? "2px" : "8px";
+  optionsContainer.style.marginLeft = isMobile ? "0" : "8px";
+  optionsContainer.style.width = isMobile ? "100%" : "auto";
 
   const finished = createRadio(`${groupName}-finished`, groupName, author, work, item, "finished");
   const finishedLabel = document.createElement("label");
