@@ -871,6 +871,17 @@ document.getElementById("generate").addEventListener("click", () => {
 
     canvasContainer.appendChild(canvas);
     const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+    const imagePreview = document.createElement("img");
+    imagePreview.src = imageDataUrl;
+    imagePreview.alt = "保存用画像プレビュー";
+    imagePreview.style.display = "none";
+    imagePreview.style.width = "100%";
+    imagePreview.style.maxWidth = "100%";
+    imagePreview.style.marginTop = "12px";
+    imagePreview.style.border = "1px solid #ccc";
+    imagePreview.style.borderRadius = "8px";
+    imagePreview.style.background = "#fff";
+
     const actionContainer = document.createElement("div");
     actionContainer.style.display = "flex";
     actionContainer.style.justifyContent = "center";
@@ -893,21 +904,27 @@ document.getElementById("generate").addEventListener("click", () => {
               title: "作品リスト",
             });
           } else {
-            window.open(imageDataUrl, "_blank");
+            imagePreview.style.display = "block";
+            imagePreview.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         } catch (error) {
           if (error && error.name !== "AbortError") {
-            window.open(imageDataUrl, "_blank");
+            imagePreview.style.display = "block";
+            imagePreview.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         }
       });
       actionContainer.appendChild(shareBtn);
 
-      const openBtn = document.createElement("a");
-      openBtn.href = imageDataUrl;
-      openBtn.target = "_blank";
-      openBtn.rel = "noopener noreferrer";
-      openBtn.innerHTML = "<button style='padding: 10px 25px; font-size: 16px; margin: 0;'>画像を開く</button>";
+      const openBtn = document.createElement("button");
+      openBtn.textContent = "画像を開く";
+      openBtn.style.padding = "10px 25px";
+      openBtn.style.fontSize = "16px";
+      openBtn.style.margin = "0";
+      openBtn.addEventListener("click", () => {
+        imagePreview.style.display = "block";
+        imagePreview.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       actionContainer.appendChild(openBtn);
     } else {
       const link = document.createElement("a");
@@ -918,11 +935,14 @@ document.getElementById("generate").addEventListener("click", () => {
     }
 
     canvasContainer.appendChild(actionContainer);
+    if (isMobile) {
+      canvasContainer.appendChild(imagePreview);
+    }
     
     // 説明テキスト
     const instructionText = document.createElement("p");
     instructionText.textContent = isMobile
-      ? "iPhoneでは「共有して保存」から写真に保存できます。うまくいかない場合は「画像を開く」後に長押し保存してください"
+      ? "iPhoneでは「共有して保存」から写真に保存できます。うまくいかない場合は「画像を開く」で下に表示された画像を長押し保存してください"
       : "画像を保存して、XやBlueskyなどに投稿してください";
     instructionText.style.marginTop = "15px";
     instructionText.style.marginBottom = "15px";
