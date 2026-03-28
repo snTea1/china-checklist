@@ -699,10 +699,10 @@ function drawRoundedRectCompat(ctx, x, y, width, height, radius) {
 }
 
 function drawTextFit(ctx, text, x, y, maxWidth) {
-  let fontSize = 22;
-  const baseFont = ctx.font || '22px sans-serif';
+  let fontSize = 18;
+  const baseFont = ctx.font || '18px sans-serif';
   const fontFamily = baseFont.split(' ').slice(1).join(' ') || 'sans-serif';
-  while (fontSize > 10) {
+  while (fontSize > 9) {
     ctx.font = `${fontSize}px ${fontFamily}`;
     if (ctx.measureText(text).width <= maxWidth) break;
     fontSize -= 1;
@@ -756,14 +756,20 @@ document.getElementById("generate").addEventListener("click", () => {
       allAuthors.push({ name: auth, works: arr });
     });
 
+    const authorTitleHeight = 54;
+    const workTitleHeight = 32;
+    const itemRowHeight = 32;
+    const authorSpacing = 56;
+    const workSpacing = 24;
+
     // 高さ計算
-    let calcY = 70;
+    let calcY = 60;
     allAuthors.forEach(author => {
       const authorItems = allChecked.filter(i => i.dataset.author === author.name);
       if (authorItems.length === 0) return;
-      calcY += 70;
+      calcY += authorTitleHeight;
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-      const isTwoColumn = targetWorks.length >= 2 && window.innerWidth >= 760;
+      const isTwoColumn = targetWorks.length >= 2 && window.innerWidth >= 640;
       let maxY = calcY;
       let startY = calcY;
       targetWorks.forEach((work, index) => {
@@ -771,13 +777,13 @@ document.getElementById("generate").addEventListener("click", () => {
         let tempY = calcY;
         if (isTwoColumn) {
           if (index % 2 === 1) { tempY = startY; } 
-          else if (index > 0) { tempY = maxY + 30; startY = tempY; }
+          else if (index > 0) { tempY = maxY + workSpacing; startY = tempY; }
         }
-        tempY += 40 + (workItems.length * 40);
+        tempY += workTitleHeight + (workItems.length * itemRowHeight);
         if (tempY > maxY) maxY = tempY;
-        if (!isTwoColumn) calcY = maxY + 20;
+        if (!isTwoColumn) calcY = maxY + 16;
       });
-      calcY = maxY + 80;
+      calcY = maxY + authorSpacing;
     });
 
     // フッターの高さを足す
@@ -794,50 +800,52 @@ document.getElementById("generate").addEventListener("click", () => {
     ctx.fillStyle = "#fffaf0"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 10; ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
 
-    let currentY = 70;
+    let currentY = 60;
     allAuthors.forEach(author => {
       const authorItems = allChecked.filter(i => i.dataset.author === author.name);
       if (authorItems.length === 0) return;
-      ctx.font = "bold 32px serif"; ctx.fillStyle = "#8b0000"; ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 2; ctx.setLineDash([10, 5]);
+      ctx.font = "bold 26px serif"; ctx.fillStyle = "#8b0000"; ctx.strokeStyle = "#8b0000"; ctx.lineWidth = 2; ctx.setLineDash([10, 5]);
       const txt = "【 " + author.name + " 】";
       const tw = ctx.measureText(txt).width;
       const tx = (canvas.width / 2) - (tw / 2);
       ctx.beginPath(); ctx.moveTo(40, currentY - 10); ctx.lineTo(tx - 15, currentY - 10); ctx.stroke();
       ctx.fillText(txt, tx, currentY);
       ctx.beginPath(); ctx.moveTo(tx + tw + 15, currentY - 10); ctx.lineTo(canvas.width - 40, currentY - 10); ctx.stroke();
-      ctx.setLineDash([]); currentY += 60;
+      ctx.setLineDash([]); currentY += 48;
 
       const targetWorks = author.works.filter(work => authorItems.some(i => i.dataset.work === work.title));
-      const isTwoCol = targetWorks.length >= 2 && canvas.width >= 760;
+      const isTwoCol = targetWorks.length >= 2 && canvas.width >= 640;
+      const columnGap = 20;
+      const columnWidth = isTwoCol ? Math.floor((canvas.width - 80 - columnGap) / 2) : canvas.width - 120;
       let maxYInA = currentY; let startY = currentY;
       targetWorks.forEach((work, index) => {
         const workItems = authorItems.filter(i => i.dataset.work === work.title);
-        let xOff = 60;
+        let xOff = 50;
         if (isTwoCol) {
-          const xIdx = index % 2; xOff = 60 + (xIdx * 370);
+          const xIdx = index % 2; xOff = 40 + (xIdx * (columnWidth + columnGap));
           if (xIdx === 1) { currentY = startY; } 
-          else if (index > 0) { currentY = maxYInA + 30; startY = currentY; }
+          else if (index > 0) { currentY = maxYInA + workSpacing; startY = currentY; }
         }
-        ctx.font = "bold 24px sans-serif"; ctx.fillStyle = "#333"; ctx.fillText("■ " + work.title, xOff, currentY);
-        currentY += 40;
+        ctx.font = "bold 20px sans-serif"; ctx.fillStyle = "#333"; ctx.fillText("■ " + work.title, xOff, currentY);
+        currentY += 32;
         workItems.forEach(input => {
-          const bX = xOff + 30; const bY = currentY - 20;
+          const bX = xOff + 20; const bY = currentY - 16;
           const noteAppend = input.dataset.note ? ` (${input.dataset.note})` : "";
           if (input.dataset.status === "finished") {
-            ctx.fillStyle = "#000000"; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.fill();
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bX+5, bY+12); ctx.lineTo(bX+10, bY+18); ctx.lineTo(bX+19, bY+6); ctx.stroke();
+            ctx.fillStyle = "#000000"; drawRoundedRectCompat(ctx, bX, bY, 20, 20, 4); ctx.fill();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bX+4, bY+10); ctx.lineTo(bX+8, bY+15); ctx.lineTo(bX+16, bY+5); ctx.stroke();
             ctx.fillStyle = "#000000";
-            drawTextFit(ctx, input.dataset.item + noteAppend, bX + 35, currentY, 700);
+            drawTextFit(ctx, input.dataset.item + noteAppend, bX + 30, currentY, columnWidth - 40);
           } else {
-            ctx.strokeStyle = "#999999"; ctx.lineWidth = 2; drawRoundedRectCompat(ctx, bX, bY, 24, 24, 5); ctx.stroke();
+            ctx.strokeStyle = "#999999"; ctx.lineWidth = 2; drawRoundedRectCompat(ctx, bX, bY, 20, 20, 4); ctx.stroke();
             ctx.fillStyle = "#999999";
-            drawTextFit(ctx, input.dataset.item + noteAppend, bX + 35, currentY, 700);
+            drawTextFit(ctx, input.dataset.item + noteAppend, bX + 30, currentY, columnWidth - 40);
           }
-          currentY += 40;
+          currentY += 32;
         });
         if (currentY > maxYInA) maxYInA = currentY;
       });
-      currentY = maxYInA + 60;
+      currentY = maxYInA + authorSpacing;
     });
 
     // フッター装飾
@@ -850,19 +858,19 @@ document.getElementById("generate").addEventListener("click", () => {
     ctx.stroke();
     ctx.setLineDash([]);
     
-    ctx.font = "bold 16px serif";
+    ctx.font = "bold 14px serif";
     ctx.fillStyle = "#8b0000";
     ctx.textAlign = "left";
     const footerX = 50;
     const footerYStart = canvas.height - 40;
     ctx.fillText(`✦ ${userName}`, footerX, footerYStart);
-    ctx.font = "14px serif";
+    ctx.font = "12px serif";
     ctx.fillStyle = "#666";
     ctx.fillText(dateStr, footerX, footerYStart + 22);
     
     // URL右端に表示
     ctx.textAlign = "right";
-    ctx.font = "12px serif";
+    ctx.font = "11px serif";
     ctx.fillStyle = "#000";
     ctx.fillText("黒字：履修済", canvas.width - 50, footerYStart);
     ctx.fillStyle = "#666";
