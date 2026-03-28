@@ -40,32 +40,10 @@
     h1 { font-size: 18px; }
     .author-summary { font-size: 13px; padding: 8px; }
     .work-summary { font-size: 12px; padding: 6px; }
+    .work-details { margin: 4px 4px 8px 8px; }
     label { font-size: 11px; margin-left: 5px; }
     button { padding: 8px 12px; font-size: 13px; }
   }
-  <!-- ★追加CSS（既存の<style>の最後に追加） -->
-@media (max-width: 600px) {
-  .item-row {
-    flex-direction: column;
-    align-items: flex-start !important;
-  }
-
-  .item-row span {
-    white-space: normal !important;
-    width: 100%;
-  }
-
-  .options-container {
-    width: 100%;
-    margin-top: 6px;
-    justify-content: flex-start;
-  }
-
-  .options-container label {
-    margin-right: 8px;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -451,7 +429,6 @@ authors.forEach((author, aIdx) => {
 
     work.items.forEach((item, iIdx) => {
       const container = document.createElement("div");
-container.className = "item-row";
       container.style.display = "flex";
       container.style.flexWrap = "wrap";
       container.style.alignItems = "center";
@@ -466,9 +443,9 @@ container.className = "item-row";
       
       const itemSpan = document.createElement("span");
       itemSpan.textContent = item + " ： ";
-      itemSpan.style.flex = isMobile ? "0 1 auto" : "1 1 auto";
+      itemSpan.style.flex = isMobile ? "1 1 100%" : "1 1 auto";
       itemSpan.style.minWidth = isMobile ? "60px" : "100px";
-      itemSpan.style.whiteSpace = isMobile ? "normal" : "nowrap";
+      itemSpan.style.whiteSpace = "nowrap";
       itemSpan.style.fontSize = isMobile ? "11px" : "14px";
       
       // 文字の長さに応じてフォントサイズを調整
@@ -492,22 +469,19 @@ container.className = "item-row";
       noteInput.style.marginLeft = "0";
       noteInput.style.padding = "2px 4px";
       noteInput.style.fontSize = "11px";
-      noteInput.style.width = isMobile ? 55px" : "140px";
-      noteInput.style.minWidth = "55px";
+      noteInput.style.width = isMobile ? "52px" : "140px";
+      noteInput.style.minWidth = isMobile ? "52px" : "60px";
+      noteInput.style.flex = isMobile ? "0 0 52px" : "0 0 auto";
       container.appendChild(noteInput);
       
       // 選択肢コンテナ
       const optionsContainer = document.createElement("div");
-optionsContainer.className = "options-container";
-
-optionsContainer.style.display = "flex";
-optionsContainer.style.alignItems = "center";
-optionsContainer.style.gap = isMobile ? "6px" : "0px";
-optionsContainer.style.flexShrink = "0";
-
-if (isMobile) {
-  optionsContainer.style.flexBasis = "100%";
-}
+      optionsContainer.style.display = "flex";
+      optionsContainer.style.alignItems = "center";
+      optionsContainer.style.gap = isMobile ? "4px" : "0px";
+      optionsContainer.style.flexShrink = "0";
+      optionsContainer.style.flexWrap = isMobile ? "wrap" : "nowrap";
+      optionsContainer.style.flex = isMobile ? "1 1 auto" : "0 0 auto";
       
       // 完走
       const finishedId = `${groupName}-finished`;
@@ -596,7 +570,6 @@ function addCustomItem() {
 
   const groupName = `custom-${Date.now()}`;
   const container = document.createElement("div");
-container.className = "item-row";
   container.style.display = "flex";
   container.style.flexWrap = "wrap";
   container.style.alignItems = "center";
@@ -607,8 +580,8 @@ container.className = "item-row";
 
   const itemSpan = document.createElement("span");
   itemSpan.textContent = `${item} ： `;
-  itemSpan.style.flex = isMobile ? "0 1 auto" : "1 1 auto";
-  itemSpan.style.whiteSpace = isMobile ? "normal" : "nowrap";
+  itemSpan.style.flex = isMobile ? "1 1 100%" : "1 1 auto";
+  itemSpan.style.whiteSpace = "nowrap";
   itemSpan.style.fontSize = isMobile ? "11px" : "14px";
   container.appendChild(itemSpan);
 
@@ -618,14 +591,17 @@ container.className = "item-row";
   noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
   noteInput.style.padding = "2px 4px";
   noteInput.style.fontSize = "11px";
-  noteInput.style.width = isMobile ? "55px" : "160px";
-  noteInput.style.minWidth = "60px";
+  noteInput.style.width = isMobile ? "52px" : "160px";
+  noteInput.style.minWidth = isMobile ? "52px" : "60px";
+  noteInput.style.flex = isMobile ? "0 0 52px" : "0 0 auto";
   container.appendChild(noteInput);
 
   const optionsContainer = document.createElement("div");
   optionsContainer.style.display = "flex";
   optionsContainer.style.alignItems = "center";
-  optionsContainer.style.gap = isMobile ? "2px" : "6px";
+  optionsContainer.style.gap = isMobile ? "4px" : "6px";
+  optionsContainer.style.flexWrap = isMobile ? "wrap" : "nowrap";
+  optionsContainer.style.flex = isMobile ? "1 1 auto" : "0 0 auto";
 
   const finished = createRadio(`${groupName}-finished`, groupName, author, work, item, "finished");
   const finishedLabel = document.createElement("label");
