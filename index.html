@@ -710,6 +710,19 @@ function drawTextFit(ctx, text, x, y, maxWidth) {
   ctx.fillText(text, x, y);
 }
 
+function dataUrlToFile(dataUrl, fileName) {
+  const parts = dataUrl.split(",");
+  const mimeMatch = parts[0].match(/data:(.*?);base64/);
+  const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+  const binary = atob(parts[1]);
+  const length = binary.length;
+  const bytes = new Uint8Array(length);
+  for (let index = 0; index < length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new File([bytes], fileName, { type: mimeType });
+}
+
 document.getElementById("generate").addEventListener("click", () => {
   try {
     const canvasContainer = document.getElementById("canvasContainer");
@@ -857,14 +870,60 @@ document.getElementById("generate").addEventListener("click", () => {
     ctx.textAlign = "left"; 
 
     canvasContainer.appendChild(canvas);
-    const link = document.createElement("a");
-    link.download = "作品リスト.jpg"; link.href = canvas.toDataURL("image/jpeg", 0.8);
-    link.innerHTML = "<br><button style='padding: 10px 25px; font-size: 16px; margin-bottom: 15px;'>画像を保存する</button>";
-    canvasContainer.appendChild(link);
+    const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+    const actionContainer = document.createElement("div");
+    actionContainer.style.display = "flex";
+    actionContainer.style.justifyContent = "center";
+    actionContainer.style.gap = "10px";
+    actionContainer.style.flexWrap = "wrap";
+    actionContainer.style.marginTop = "16px";
+    actionContainer.style.marginBottom = "15px";
+
+    if (isMobile && navigator.share && navigator.canShare) {
+      const shareBtn = document.createElement("button");
+      shareBtn.textContent = "共有して保存";
+      shareBtn.style.padding = "10px 25px";
+      shareBtn.style.fontSize = "16px";
+      shareBtn.addEventListener("click", async () => {
+        try {
+          const imageFile = dataUrlToFile(imageDataUrl, "作品リスト.jpg");
+          if (navigator.canShare({ files: [imageFile] })) {
+            await navigator.share({
+              files: [imageFile],
+              title: "作品リスト",
+            });
+          } else {
+            window.open(imageDataUrl, "_blank");
+          }
+        } catch (error) {
+          if (error && error.name !== "AbortError") {
+            window.open(imageDataUrl, "_blank");
+          }
+        }
+      });
+      actionContainer.appendChild(shareBtn);
+
+      const openBtn = document.createElement("a");
+      openBtn.href = imageDataUrl;
+      openBtn.target = "_blank";
+      openBtn.rel = "noopener noreferrer";
+      openBtn.innerHTML = "<button style='padding: 10px 25px; font-size: 16px; margin: 0;'>画像を開く</button>";
+      actionContainer.appendChild(openBtn);
+    } else {
+      const link = document.createElement("a");
+      link.download = "作品リスト.jpg";
+      link.href = imageDataUrl;
+      link.innerHTML = "<button style='padding: 10px 25px; font-size: 16px; margin: 0;'>画像を保存する</button>";
+      actionContainer.appendChild(link);
+    }
+
+    canvasContainer.appendChild(actionContainer);
     
     // 説明テキスト
     const instructionText = document.createElement("p");
-    instructionText.textContent = "画像を保存して、XやBlueskyなどに投稿してください";
+    instructionText.textContent = isMobile
+      ? "iPhoneでは「共有して保存」から写真に保存できます。うまくいかない場合は「画像を開く」後に長押し保存してください"
+      : "画像を保存して、XやBlueskyなどに投稿してください";
     instructionText.style.marginTop = "15px";
     instructionText.style.marginBottom = "15px";
     instructionText.style.color = "#ffffff";
