@@ -429,7 +429,7 @@ authors.forEach((author, aIdx) => {
       const itemSpan = document.createElement("span");
       itemSpan.textContent = item + " ： ";
       itemSpan.style.flex = isMobile ? "1 1 auto" : "1 1 auto";
-      itemSpan.style.minWidth = isMobile ? "80px" : "100px";
+      itemSpan.style.minWidth = isMobile ? "70px" : "100px";
       itemSpan.style.whiteSpace = "nowrap";
       
       // 文字の長さに応じてフォントサイズを調整
@@ -455,7 +455,7 @@ authors.forEach((author, aIdx) => {
       noteInput.style.marginLeft = isMobile ? "0" : "8px";
       noteInput.style.padding = "2px 4px";
       noteInput.style.fontSize = isMobile ? "11px" : "12px";
-      noteInput.style.width = isMobile ? "50px" : "140px";
+      noteInput.style.width = isMobile ? "40px" : "140px";
       container.appendChild(noteInput);
       
       // 選択肢コンテナ
@@ -476,7 +476,8 @@ authors.forEach((author, aIdx) => {
       finishedLabel.style.display = "inline";
       finishedLabel.style.margin = "0";
       finishedLabel.style.cursor = "pointer";
-      finishedLabel.style.minWidth = "40px";
+      finishedLabel.style.minWidth = isMobile ? "28px" : "40px";
+      finishedLabel.style.fontSize = isMobile ? "11px" : "14px";
       optionsContainer.appendChild(finishedLabel);
       
       // 履修中
@@ -490,7 +491,8 @@ authors.forEach((author, aIdx) => {
       readingLabel.style.display = "inline";
       readingLabel.style.margin = "0";
       readingLabel.style.cursor = "pointer";
-      readingLabel.style.minWidth = "50px";
+      readingLabel.style.minWidth = isMobile ? "28px" : "50px";
+      readingLabel.style.fontSize = isMobile ? "11px" : "14px";
       optionsContainer.appendChild(readingLabel);
       
       // 未選択
@@ -505,7 +507,8 @@ authors.forEach((author, aIdx) => {
       noneLabel.style.display = "inline";
       noneLabel.style.margin = "0";
       noneLabel.style.cursor = "pointer";
-      noneLabel.style.minWidth = "50px";
+      noneLabel.style.minWidth = isMobile ? "28px" : "50px";
+      noneLabel.style.fontSize = isMobile ? "11px" : "14px";
       optionsContainer.appendChild(noneLabel);
       
       container.appendChild(optionsContainer);
@@ -559,7 +562,7 @@ function addCustomItem() {
   const itemSpan = document.createElement("span");
   itemSpan.textContent = `${item} ： `;
   itemSpan.style.flex = isMobile ? "1 1 auto" : "1 1 auto";
-  itemSpan.style.minWidth = isMobile ? "80px" : "auto";
+  itemSpan.style.minWidth = isMobile ? "70px" : "auto";
   itemSpan.style.whiteSpace = "nowrap";
   container.appendChild(itemSpan);
 
@@ -569,7 +572,7 @@ function addCustomItem() {
   noteInput.placeholder = isMobile ? "進捗" : "進捗メモ（例: 邦訳2巻まで）";
   noteInput.style.padding = "2px 4px";
   noteInput.style.fontSize = isMobile ? "11px" : "12px";
-  noteInput.style.width = isMobile ? "50px" : "160px";
+  noteInput.style.width = isMobile ? "40px" : "160px";
   container.appendChild(noteInput);
 
   const optionsContainer = document.createElement("div");
